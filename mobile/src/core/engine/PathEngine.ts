@@ -9,8 +9,9 @@ type FingerPosition = {
 export class PathEngine {
 
   points: Point[]
-  visitedPoints: Point[] = []
+  visited: Record<string, number> = {}
   path: FingerPosition[] = []
+  lastPosition: FingerPosition | null = null
 
   constructor(points: Point[]) {
     this.points = points
@@ -19,48 +20,50 @@ export class PathEngine {
   onFingerStart(x: number, y: number) {
 
     this.path = [{ x, y }]
-    this.visitedPoints = []
+    this.visited = {}
+    this.lastPosition = { x, y }
 
-    this.checkPointCollision(x, y)
+    const point = CollisionEngine.detectTouchedPoint(x, y, this.points)
+
+    if (point) {
+      this.registerPointVisit(point)
+    }
+
   }
 
-  onFingerMove(x: number, y: number) {
+onFingerMove(x: number, y: number) {
 
-    this.path.push({ x, y })
+  console.log("Finger move:", x, y)
 
-    this.checkPointCollision(x, y)
+  this.path.push({ x, y })
+
+  const point = CollisionEngine.detectTouchedPoint(x, y, this.points)
+
+  if (point) {
+    this.registerPointVisit(point)
   }
+
+  this.lastPosition = { x, y }
+}
+
 
   onFingerEnd() {
 
+    console.log("Visited buttons :", this.visited)
+
     return {
-      visitedPoints: this.visitedPoints,
+      visited: this.visited,
       path: this.path
     }
 
   }
 
-  private checkPointCollision(x: number, y: number) {
-
-    this.points.forEach(point => {
-
-      const alreadyVisited = this.visitedPoints.find(p => p.id === point.id)
-
-      if (alreadyVisited) return
-
-      const touched = CollisionEngine.isPointTouched(x, y, point)
-
-      if (touched) {
-        this.registerPointVisit(point)
-      }
-
-    })
-
-  }
-
   private registerPointVisit(point: Point) {
 
-    this.visitedPoints.push(point)
+    this.visited[point.id] = (this.visited[point.id] || 0) + 1
+
+    console.log("Button visited:", point.id)
+    console.log("Visited state:", this.visited)
 
   }
 

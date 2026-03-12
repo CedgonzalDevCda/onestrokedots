@@ -1,26 +1,15 @@
-import { Point } from "../models/Point"
+import { Point } from "@/src/core/models/Point"
 
 export class Validator {
 
-  static validate(points: Point[], visitedPoints: Point[]): boolean {
+  static validate(
+    points: Point[],
+    visited: Record<string, number>
+  ): boolean {
 
-    const counter: Record<string, number> = {}
-
-    // compter les passages
-    visitedPoints.forEach(point => {
-
-      if (!counter[point.id]) {
-        counter[point.id] = 0
-      }
-
-      counter[point.id]++
-
-    })
-
-    // vérifier chaque point du niveau
     for (const point of points) {
 
-      const visits = counter[point.id] || 0
+      const visits = visited[point.id] ?? 0
 
       if (visits !== point.value) {
         return false

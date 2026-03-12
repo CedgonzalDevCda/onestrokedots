@@ -1,21 +1,31 @@
 import { Point } from "@/src/core/models/Point"
+import { CollisionEngine } from "./CollisionEngine"
 
 export class GameEngine {
 
-  static detectPoint(x:number,y:number,points:Point[]){
-    
-    for(const p of points){
-      const dx = x - p.x
-      const dy = y - p.y
+  static processSegment(
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    points: Point[],
+    visited: Record<string, number>
+  ): Record<string, number> {
 
-      const distance = Math.sqrt(dx*dx + dy*dy)
+    const point = CollisionEngine.detectSegmentHit(
+      x1,
+      y1,
+      x2,
+      y2,
+      points
+    )
 
-      if(distance <= p.radius){
-        return p
-      }
+    if (!point) return visited
+
+    return {
+      ...visited,
+      [point.id]: (visited[point.id] || 0) + 1
     }
-
-    return null
   }
 
 }
