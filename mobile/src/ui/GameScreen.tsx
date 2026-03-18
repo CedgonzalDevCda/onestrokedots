@@ -5,10 +5,13 @@ import { Point } from "@/src/core/models/Point"
 import { useGame } from "@/src/hooks/useGame"
 
 const levelPoints: Point[] = [
-  { id: "1", x: 80, y: 120, value: 3, radius: 30 },
-  { id: "2", x: 250, y: 120, value: 2, radius: 30 },
-  { id: "3", x: 160, y: 300, value: 2, radius: 30 }
-]
+  { id: "1", x: 220, y: 100, value: 1, radius: 28 },
+  { id: "2", x: 340, y: 180, value: 2, radius: 32 },
+  { id: "3", x: 160, y: 300, value: 2, radius: 30 },
+  { id: "4", x: 80,  y: 260, value: 1, radius: 26 },
+  { id: "5", x: 280,  y: 660, value: 1, radius: 26 },
+];
+
 
 function randomColor() {
   const r = Math.floor(Math.random() * 200)
