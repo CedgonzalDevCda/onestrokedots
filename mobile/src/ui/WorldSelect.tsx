@@ -1,16 +1,21 @@
 import { useState } from "react"
-import { View, Text, Pressable, StyleSheet } from "react-native"
+import {
+  View,
+  Text,
+  Pressable,
+  StyleSheet,
+  ScrollView
+} from "react-native"
 import { router } from "expo-router"
 
 import { World } from "@/src/core/models/World"
 import { Level } from "@/src/core/models/Level"
+import { AdBanner } from "@/src/ads/AdBanner"
 
 const createLevels = (): Level[] => {
-
   const levels: Level[] = []
 
   for (let i = 1; i <= 12; i++) {
-
     levels.push({
       id: i.toString(),
       name: `Level ${i}`,
@@ -18,7 +23,6 @@ const createLevels = (): Level[] => {
       isAvailable: i === 1,
       PointList: []
     })
-
   }
 
   return levels
@@ -49,91 +53,105 @@ const worlds: World[] = [
 ]
 
 export default function WorldSelect() {
-
   const [selectedWorld, setSelectedWorld] = useState<World | null>(null)
 
   if (selectedWorld) {
-
     return (
       <View style={styles.container}>
 
-        <Text style={styles.title}>{selectedWorld.name}</Text>
-
-        <View style={styles.grid}>
-
-          {selectedWorld.LevelList.map((level) => (
-
-            <Pressable
-              key={level.id}
-              style={[
-                styles.level,
-                level.isAvailable ? styles.available : styles.locked
-              ]}
-              onPress={() => {
-
-                if (level.isAvailable) {
-                  router.push("/play")
-                }
-
-              }}
-            >
-
-              <Text style={styles.levelText}>
-                {level.name.replace("Level ","")}
-              </Text>
-
-            </Pressable>
-
-          ))}
-
+        {/* ✅ Bannière sticky */}
+        <View style={styles.banner}>
+          <AdBanner placement="world_levels" />
         </View>
+
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.title}>{selectedWorld.name}</Text>
+
+          <View style={styles.grid}>
+            {selectedWorld.LevelList.map((level) => (
+              <Pressable
+                key={level.id}
+                style={[
+                  styles.level,
+                  level.isAvailable ? styles.available : styles.locked
+                ]}
+                onPress={() => {
+                  if (level.isAvailable) {
+                    router.push("/play")
+                  }
+                }}
+              >
+                <Text style={styles.levelText}>
+                  {level.name.replace("Level ", "")}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </ScrollView>
 
       </View>
     )
   }
 
   return (
-
     <View style={styles.container}>
 
-      <Text style={styles.title}>Worlds</Text>
+      {/* ✅ Bannière sticky */}
+      <View style={styles.banner}>
+        <AdBanner placement="world_list" />
+      </View>
 
-      {worlds.map((world) => (
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.title}>Worlds</Text>
 
-        <Pressable
-          key={world.id}
-          style={[
-            styles.world,
-            world.isAvailable ? styles.available : styles.locked
-          ]}
-          onPress={() => {
-
-            if (world.isAvailable) {
-              setSelectedWorld(world)
-            }
-
-          }}
-        >
-
-          <Text style={styles.worldText}>
-            {world.name}
-          </Text>
-
-        </Pressable>
-
-      ))}
+        {worlds.map((world) => (
+          <Pressable
+            key={world.id}
+            style={[
+              styles.world,
+              world.isAvailable ? styles.available : styles.locked
+            ]}
+            onPress={() => {
+              if (world.isAvailable) {
+                setSelectedWorld(world)
+              }
+            }}
+          >
+            <Text style={styles.worldText}>
+              {world.name}
+            </Text>
+          </Pressable>
+        ))}
+      </ScrollView>
 
     </View>
   )
-
 }
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center"
+    backgroundColor: "#fff",
+  },
+
+  banner: {
+    marginTop: 40,
+    width: "100%",
+    alignItems: "center",
+    backgroundColor: "#000",
+    paddingVertical: 4,
+
+    // ✅ effet pro (ombre)
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+
+  scrollContent: {
+    alignItems: "center",
+    paddingTop: 20,
+    paddingBottom: 40,
   },
 
   title: {
@@ -181,5 +199,4 @@ const styles = StyleSheet.create({
   locked: {
     backgroundColor: "#ccc"
   }
-
 })
