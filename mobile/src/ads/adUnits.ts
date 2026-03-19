@@ -41,7 +41,7 @@ const realUnits = {
     interstitial: {
     end_level: {
       ios: "ca-app-pub-XXX/endlevel-ios",
-      android: "ca-app-pub-2062468514835599/7342295473/endlevel-android",
+      android: "ca-app-pub-2062468514835599/1040611006/endlevel-android",
     },
   },
 };

@@ -7,7 +7,7 @@ import {
 
 const adUnitId = __DEV__
   ? TestIds.INTERSTITIAL
-  : "ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx" // 🔥 mets ton vrai ID
+  : "ca-app-pub-2062468514835599/1040611006" // AdMob ID de l'interstitiel de fin de niveau (remplacez par votre propre ID en prod)
 
 export function useInterstitial() {
   const interstitial = useRef(
