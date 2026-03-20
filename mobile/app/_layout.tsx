@@ -35,6 +35,7 @@ export default function Layout() {
           <Stack.Screen name="(game)/worlds" />
           <Stack.Screen name="(game)/levels" />
           <Stack.Screen name="(game)/play" />
+          <Stack.Screen name="(game)/settings" />
         </Stack>
       </AdProvider>
     </>

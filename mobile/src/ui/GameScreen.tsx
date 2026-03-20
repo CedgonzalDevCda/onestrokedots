@@ -5,6 +5,8 @@ import { Point } from "@/src/core/models/Point"
 import { useGame } from "@/src/hooks/useGame"
 import { AdBanner } from "@/src/ads/AdBanner"
 import { useInterstitial } from "@/src/ads/useInterstitial"
+import { useAds } from "@/src/ads/AdProvider"
+
 
 const levelPoints: Point[] = [
   { id: "1", x: 100, y: 340, value: 1, radius: 32 },
@@ -27,6 +29,8 @@ function randomColor() {
 
 export default function GameScreen() {
   const [showModal, setShowModal] = useState(false)
+
+  const { adMode, canLoadAd } = useAds()
 
   const { show } = useInterstitial()
 
@@ -56,16 +60,17 @@ export default function GameScreen() {
     handleMove(locationX, locationY)
   }
 
-  function end() {
-    const result = handleEnd()
+function end() {
+  const result = handleEnd()
 
-    if (result) {
-      show() // ✅ interstitial
-      setTimeout(() => {
-        setShowModal(true)
-      }, 500)
-    }
+  if (!result) return
+
+  if (adMode === "high" && canLoadAd()) {
+    show()
+  } else {
+    setShowModal(true)
   }
+}
 
   return (
     <View style={{ flex: 1 }}>

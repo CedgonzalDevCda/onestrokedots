@@ -12,9 +12,8 @@ type Props = {
 
 export const AdBanner: React.FC<Props> = ({ placement }) => {
   const [refreshKey, setRefreshKey] = useState(0);
-  const { canLoadAd } = useAds();
+  const { canLoadAd, adMode } = useAds(); // ✅ récupère adMode
 
-  // ✅ évite recalcul inutile
   const unitId = useMemo(() => {
     return Platform.select({
       ios: adUnits.banner[placement].ios,
@@ -31,6 +30,9 @@ export const AdBanner: React.FC<Props> = ({ placement }) => {
 
     return () => clearInterval(interval);
   }, [canLoadAd]);
+
+  // ❌ no ads → rien
+  if (adMode === "no_ads") return null;
 
   return (
     <View style={styles.container}>

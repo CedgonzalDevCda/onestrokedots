@@ -59,10 +59,18 @@ export default function WorldSelect() {
     return (
       <View style={styles.container}>
 
-        {/* ✅ Bannière sticky */}
+        {/* ✅ Bannière */}
         <View style={styles.banner}>
           <AdBanner placement="world_levels" />
         </View>
+
+        {/* ⚙️ SETTINGS sous bannière */}
+        <Pressable
+          onPress={() => router.push("/(game)/settings")}
+          style={styles.settingsBtn}
+        >
+          <Text style={styles.settingsText}>⚙️</Text>
+        </Pressable>
 
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.title}>{selectedWorld.name}</Text>
@@ -96,10 +104,18 @@ export default function WorldSelect() {
   return (
     <View style={styles.container}>
 
-      {/* ✅ Bannière sticky */}
+      {/* ✅ Bannière */}
       <View style={styles.banner}>
         <AdBanner placement="world_list" />
       </View>
+
+      {/* ⚙️ SETTINGS sous bannière */}
+      <Pressable
+        onPress={() => router.push("/(game)/settings")}
+        style={styles.settingsBtn}
+      >
+        <Text style={styles.settingsText}>⚙️</Text>
+      </Pressable>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text style={styles.title}>Worlds</Text>
@@ -140,12 +156,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#000",
     paddingVertical: 4,
+  },
 
-    // ✅ effet pro (ombre)
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+  settingsBtn: {
+    marginTop: 10,
+    marginRight: 10,
+    alignSelf: "flex-end",
+    backgroundColor: "#222",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+
+  settingsText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 
   scrollContent: {

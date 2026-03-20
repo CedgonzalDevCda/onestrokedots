@@ -1,7 +1,10 @@
-// ads/AdProvider.tsx
-import React, { createContext, useContext, useRef } from "react";
+import React, { createContext, useContext, useRef, useState } from "react";
+
+export type AdMode = "normal" | "high" | "no_ads";
 
 type AdContextType = {
+  adMode: AdMode;
+  setAdMode: (mode: AdMode) => void;
   canLoadAd: () => boolean;
 };
 
@@ -9,6 +12,7 @@ const AdContext = createContext<AdContextType | null>(null);
 
 export const AdProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const lastLoad = useRef<number>(0);
+  const [adMode, setAdMode] = useState<AdMode>("normal");
 
   const canLoadAd = () => {
     const now = Date.now();
@@ -19,7 +23,7 @@ export const AdProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   };
 
   return (
-    <AdContext.Provider value={{ canLoadAd }}>
+    <AdContext.Provider value={{ adMode, setAdMode, canLoadAd }}>
       {children}
     </AdContext.Provider>
   );
