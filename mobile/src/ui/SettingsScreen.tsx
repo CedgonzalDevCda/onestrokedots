@@ -1,12 +1,22 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
 import { useAds, AdMode } from "@/src/ads/AdProvider"
+import { PaywallService } from "@/src/services/PaywallService"
+import { useIAP } from "@/src/hooks/useIAP"
+
 
 export default function SettingsScreen() {
   const { adMode, setAdMode } = useAds()
+  const { refreshPurchases } = useIAP()
 
-  const handlePurchaseNoAds = () => {
-    setAdMode("no_ads")
+const handlePurchaseNoAds = async () => {
+  const service = new PaywallService()
+
+  const success = await service.presentPaywall()
+
+  if (success) {
+    await refreshPurchases() // 🔥 sync RevenueCat
   }
+}
 
   const renderOption = (
     title: string,
@@ -51,14 +61,14 @@ export default function SettingsScreen() {
 
       <View style={styles.separator} />
 
-      <TouchableOpacity style={styles.purchase} onPress={handlePurchaseNoAds}>
-        <Text style={styles.purchaseText}>
-          Supprimer les pubs – 2.99€
-        </Text>
-        <Text style={styles.purchaseDesc}>
-          Supprime bannières + interstitielles (rewarded conservées)
-        </Text>
-      </TouchableOpacity>
+<TouchableOpacity style={styles.purchase} onPress={handlePurchaseNoAds}>
+  <Text style={styles.purchaseText}>
+    Supprimer les pubs – 2.99€
+  </Text>
+  <Text style={styles.purchaseDesc}>
+    Supprime bannières + interstitielles (rewarded conservées)
+  </Text>
+</TouchableOpacity>
 
       {adMode === "no_ads" && (
         <Text style={styles.active}>

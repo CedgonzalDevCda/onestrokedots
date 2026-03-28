@@ -7,7 +7,6 @@ import { AdBanner } from "@/src/ads/AdBanner"
 import { useInterstitial } from "@/src/ads/useInterstitial"
 import { useAds } from "@/src/ads/AdProvider"
 
-
 const levelPoints: Point[] = [
   { id: "1", x: 100, y: 340, value: 1, radius: 32 },
   { id: "2", x: 200, y: 340, value: 2, radius: 32 },
@@ -20,18 +19,10 @@ const levelPoints: Point[] = [
   { id: "9", x: 300, y: 540, value: 2, radius: 32 },
 ]
 
-function randomColor() {
-  const r = Math.floor(Math.random() * 200)
-  const g = Math.floor(Math.random() * 200)
-  const b = Math.floor(Math.random() * 200)
-  return `rgb(${r},${g},${b})`
-}
-
 export default function GameScreen() {
   const [showModal, setShowModal] = useState(false)
 
   const { adMode, canLoadAd } = useAds()
-
   const { show } = useInterstitial()
 
   const {
@@ -41,14 +32,6 @@ export default function GameScreen() {
     handleMove,
     handleEnd
   } = useGame(levelPoints)
-
-  const pointColors = useMemo(() => {
-    const colors: Record<string, string> = {}
-    levelPoints.forEach(p => {
-      colors[p.id] = randomColor()
-    })
-    return colors
-  }, [])
 
   function start(e: any) {
     const { locationX, locationY } = e.nativeEvent
@@ -60,20 +43,42 @@ export default function GameScreen() {
     handleMove(locationX, locationY)
   }
 
-function end() {
-  const result = handleEnd()
+  function end() {
+    const result = handleEnd()
+    if (!result) return
 
-  if (!result) return
-
-  if (adMode === "high" && canLoadAd()) {
-    show()
-  } else {
-    setShowModal(true)
+    if (adMode === "high" && canLoadAd()) {
+      show()
+    } else {
+      setShowModal(true)
+    }
   }
-}
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: "#0f172a" }}>
+
+      {/* 🔝 HEADER */}
+      <View style={{
+        paddingTop: 50,
+        paddingHorizontal: 20,
+        paddingBottom: 10,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }}>
+        <RNText style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>
+          Level 1
+        </RNText>
+
+        <Pressable style={{
+          backgroundColor: "#1e293b",
+          paddingHorizontal: 14,
+          paddingVertical: 8,
+          borderRadius: 8
+        }}>
+          <RNText style={{ color: "white" }}>Reset</RNText>
+        </Pressable>
+      </View>
 
       {/* 🎮 ZONE DE JEU */}
       <View
@@ -84,16 +89,34 @@ function end() {
       >
         <Svg width="100%" height="100%">
 
+          {/* ✏️ PATH */}
           <Polyline
             points={path.map(p => `${p.x},${p.y}`).join(" ")}
-            stroke="blue"
-            strokeWidth={6}
+            stroke="#38bdf8"
+            strokeWidth={8}
+            strokeLinecap="round"
+            strokeLinejoin="round"
             fill="none"
           />
 
+          {/* 🔵 POINTS */}
           {levelPoints.map(p => {
-            const isVisited = (visited[p.id] ?? 0) > 0
-            const fillColor = isVisited ? pointColors[p.id] : "white"
+            const count = visited[p.id] ?? 0
+
+            let fillColor = "white"
+            let strokeColor = "#000"
+
+            if (count > 0 && count < p.value) {
+              fillColor = "#93c5fd" // en cours
+            }
+
+            if (count === p.value) {
+              fillColor = "#22c55e" // validé ✅
+            }
+
+            if (count > p.value) {
+              fillColor = "#ef4444" // erreur ❌
+            }
 
             return (
               <G key={p.id}>
@@ -101,19 +124,20 @@ function end() {
                   cx={p.x}
                   cy={p.y}
                   r={p.radius}
-                  stroke="black"
+                  stroke={strokeColor}
                   strokeWidth={3}
                   fill={fillColor}
                 />
 
+                {/* compteur dynamique */}
                 <Text
                   x={p.x}
                   y={p.y + 6}
-                  fontSize="20"
+                  fontSize="18"
                   fill="black"
                   textAnchor="middle"
                 >
-                  {p.value}
+                  {p.value - count}
                 </Text>
               </G>
             )
@@ -122,36 +146,30 @@ function end() {
         </Svg>
       </View>
 
-      {/* 📢 BANNER FIXE EN BAS */}
-      <View
-        style={{
-          width: "100%",
-          alignItems: "center",
-          backgroundColor: "#000",
-          paddingBottom: 4
-        }}
-      >
+      {/* 📢 BANNER */}
+      <View style={{
+        width: "100%",
+        alignItems: "center",
+        backgroundColor: "#000"
+      }}>
         <AdBanner placement="home" />
       </View>
 
       {/* 🎉 MODAL */}
       <Modal visible={showModal} transparent animationType="fade">
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: "rgba(0,0,0,0.5)",
-            justifyContent: "center",
-            alignItems: "center"
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: "white",
-              padding: 30,
-              borderRadius: 12,
-              alignItems: "center"
-            }}
-          >
+        <View style={{
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.6)",
+          justifyContent: "center",
+          alignItems: "center"
+        }}>
+          <View style={{
+            backgroundColor: "white",
+            padding: 30,
+            borderRadius: 16,
+            alignItems: "center",
+            width: 260
+          }}>
             <RNText style={{ fontSize: 22, marginBottom: 10 }}>
               🎉 Niveau validé !
             </RNText>
@@ -160,12 +178,13 @@ function end() {
               onPress={() => setShowModal(false)}
               style={{
                 marginTop: 10,
-                padding: 10,
-                backgroundColor: "#4CAF50",
-                borderRadius: 8
+                paddingVertical: 12,
+                paddingHorizontal: 20,
+                backgroundColor: "#22c55e",
+                borderRadius: 10
               }}
             >
-              <RNText style={{ color: "white" }}>
+              <RNText style={{ color: "white", fontWeight: "bold" }}>
                 Continuer
               </RNText>
             </Pressable>
