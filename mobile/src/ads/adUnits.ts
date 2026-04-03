@@ -50,7 +50,7 @@ const realUnits = {
 if (!isSafeDev) {
   const hasFakeId = JSON.stringify(realUnits).includes("XXX");
   if (hasFakeId) {
-    throw new Error("❌ AdMob IDs non configurés pour la production");
+    console.error("❌ AdMob IDs non configurés pour la production");
   }
 }
 

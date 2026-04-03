@@ -1,35 +1,37 @@
 import { Stack } from "expo-router";
 import { useEffect } from "react";
 import { Platform } from "react-native";
-import mobileAds from "react-native-google-mobile-ads";
 import * as NavigationBar from "expo-navigation-bar";
 import { StatusBar } from "expo-status-bar";
 import { AdProvider } from "@/src/ads/AdProvider";
+import * as SplashScreen from "expo-splash-screen";
+
 
 export default function Layout() {
 
-  useEffect(() => {
-    // ✅ Init AdMob
-    mobileAds()
-      .initialize()
-      .then(() => {
-        console.log("AdMob initialisé");
-      });
+useEffect(() => {
+  async function init() {
+    try {
+      await SplashScreen.preventAutoHideAsync();
 
-    // ✅ Mode fullscreen Android
-    if (Platform.OS === "android") {
-      NavigationBar.setVisibilityAsync("hidden");
-      NavigationBar.setBehaviorAsync("overlay-swipe");
+      if (Platform.OS === "android") {
+        await NavigationBar.setVisibilityAsync("hidden");
+      }
+    } catch (e) {
+      console.log("Init error", e);
+    } finally {
+      await SplashScreen.hideAsync();
     }
+  }
 
-  }, []);
+  init();
+}, []);
+
 
   return (
     <>
-      {/* ✅ Cache la status bar */}
       <StatusBar hidden />
 
-      {/* ✅ Ads globales */}
       <AdProvider>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(game)/worlds" />

@@ -15,6 +15,6 @@ export type InterstitialPlacements = {
 };
 
 export type AdUnits = {
-  banner: BannerPlacements;
-  interstitial: InterstitialPlacements;
+  banner: Record<string, PlatformAdUnit>;
+  interstitial: Record<string, PlatformAdUnit>;
 };

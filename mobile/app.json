@@ -8,19 +8,21 @@
     "scheme": "onestrokedots",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "updates": {
+  "enabled": false
+},
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "icon": "./assets/icon.png",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.cedgonzalezdevcda.mobile"
+      "package": "com.cedgonzalezdevcda.onestrokedots"
     },
     "web": {
       "output": "static",
@@ -49,7 +51,7 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": false
     }
   }
 }

@@ -4,36 +4,51 @@ import {
   AdEventType,
   TestIds
 } from "react-native-google-mobile-ads"
+import { Platform } from "react-native"
+import { adUnits } from "./adUnits"
 
 const adUnitId = __DEV__
   ? TestIds.INTERSTITIAL
-  : "ca-app-pub-2062468514835599/1040611006" // AdMob ID de l'interstitiel de fin de niveau (remplacez par votre propre ID en prod)
+  : Platform.select({
+      ios: adUnits.interstitial.end_level.ios,
+      android: adUnits.interstitial.end_level.android,
+    })!
 
 export function useInterstitial() {
-  const interstitial = useRef(
-    InterstitialAd.createForAdRequest(adUnitId)
-  )
-
+  const interstitial = useRef<InterstitialAd | null>(null)
   const isLoaded = useRef(false)
 
   useEffect(() => {
-    const unsubscribe = interstitial.current.addAdEventListener(
+    // ✅ créer l’ad APRÈS mount (évite crash natif)
+    const ad = InterstitialAd.createForAdRequest(adUnitId)
+    interstitial.current = ad
+
+    const unsubscribeLoaded = ad.addAdEventListener(
       AdEventType.LOADED,
       () => {
         isLoaded.current = true
       }
     )
 
-    interstitial.current.load()
+    const unsubscribeClosed = ad.addAdEventListener(
+      AdEventType.CLOSED,
+      () => {
+        isLoaded.current = false
+        ad.load() // ✅ reload automatique après fermeture
+      }
+    )
 
-    return unsubscribe
+    ad.load()
+
+    return () => {
+      unsubscribeLoaded()
+      unsubscribeClosed()
+    }
   }, [])
 
   function show() {
-    if (isLoaded.current) {
+    if (isLoaded.current && interstitial.current) {
       interstitial.current.show()
-      isLoaded.current = false
-      interstitial.current.load() // 🔥 reload pour next time
     }
   }
 
