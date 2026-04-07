@@ -1,51 +1,84 @@
 import { View, Modal, Text as RNText, Pressable } from "react-native"
 import Svg, { Circle, Text, Polyline, G } from "react-native-svg"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { Point } from "@/src/core/models/Point"
 import { useGame } from "@/src/hooks/useGame"
 import { AdBanner } from "@/src/ads/AdBanner"
 import { useInterstitial } from "@/src/ads/useInterstitial"
 import { useAds } from "@/src/ads/AdProvider"
+import StarSvg from "../../assets/gameimg/star_w46_h46.svg"
+import { styles } from "./GameScreen.styles"
+
+type Star = {
+  id: string
+  x: number
+  y: number
+  size: number
+}
 
 const levelPoints: Point[] = [
-  { id: "1", x: 100, y: 340, value: 1, radius: 32 },
-  { id: "2", x: 200, y: 340, value: 2, radius: 32 },
-  { id: "3", x: 300, y: 340, value: 2, radius: 32 },
-  { id: "4", x: 100, y: 440, value: 1, radius: 32 },
-  { id: "5", x: 200, y: 440, value: 2, radius: 32 },
-  { id: "6", x: 300, y: 440, value: 2, radius: 32 },
-  { id: "7", x: 100, y: 540, value: 1, radius: 32 },
-  { id: "8", x: 200, y: 540, value: 2, radius: 32 },
-  { id: "9", x: 300, y: 540, value: 2, radius: 32 },
+  { id: "1", x: 100, y: 240, value: 1, radius: 32 },
+  { id: "2", x: 200, y: 240, value: 2, radius: 32 },
+  { id: "3", x: 300, y: 240, value: 2, radius: 32 },
+  { id: "4", x: 100, y: 340, value: 1, radius: 32 },
+  { id: "5", x: 200, y: 340, value: 2, radius: 32 },
+  { id: "6", x: 300, y: 340, value: 2, radius: 32 },
+  { id: "7", x: 100, y: 440, value: 1, radius: 32 },
+  { id: "8", x: 200, y: 440, value: 2, radius: 32 },
+  { id: "9", x: 300, y: 440, value: 2, radius: 32 },
+]
+
+const initialStars: Star[] = [
+  { id: "1", x: 150, y: 290, size: 60 },
+  { id: "2", x: 250, y: 390, size: 60 },
+  { id: "3", x: 150, y: 390, size: 60 },
 ]
 
 export default function GameScreen() {
   const [showModal, setShowModal] = useState(false)
+  const [stars, setStars] = useState(initialStars)
+  const [collectedStars, setCollectedStars] = useState<Record<string, boolean>>({})
 
   const { adMode, canLoadAd } = useAds()
   const { show } = useInterstitial()
 
-  const {
-    path,
-    visited,
-    handleStart,
-    handleMove,
-    handleEnd
-  } = useGame(levelPoints)
+  const { path, visited, handleStart, handleMove, handleEnd } = useGame(levelPoints)
+
+  function checkStars(x: number, y: number) {
+    stars.forEach(star => {
+      if (collectedStars[star.id]) return
+
+      const dist = Math.hypot(x - star.x, y - star.y)
+      if (dist <= star.size / 2) {
+        setCollectedStars(prev => ({ ...prev, [star.id]: true }))
+      }
+    })
+  }
+
+  function resetStars() {
+    setStars(initialStars)
+    setCollectedStars({})
+  }
 
   function start(e: any) {
     const { locationX, locationY } = e.nativeEvent
     handleStart(locationX, locationY)
+    checkStars(locationX, locationY)
   }
 
   function move(e: any) {
     const { locationX, locationY } = e.nativeEvent
     handleMove(locationX, locationY)
+    checkStars(locationX, locationY)
   }
 
   function end() {
     const result = handleEnd()
-    if (!result) return
+
+    if (!result) {
+      resetStars()
+      return
+    }
 
     if (adMode === "high" && canLoadAd()) {
       show()
@@ -55,41 +88,39 @@ export default function GameScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#0f172a" }}>
+    <View style={styles.container}>
 
-      {/* 🔝 HEADER */}
-      <View style={{
-        paddingTop: 50,
-        paddingHorizontal: 20,
-        paddingBottom: 10,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center"
-      }}>
-        <RNText style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>
-          Level 1
-        </RNText>
+      {/* HEADER */}
+      <View style={styles.header}>
+        <RNText style={styles.title}>Level 1</RNText>
 
-        <Pressable style={{
-          backgroundColor: "#1e293b",
-          paddingHorizontal: 14,
-          paddingVertical: 8,
-          borderRadius: 8
-        }}>
-          <RNText style={{ color: "white" }}>Reset</RNText>
+        <Pressable onPress={resetStars} style={styles.resetButton}>
+          <RNText style={styles.resetText}>Reset</RNText>
         </Pressable>
       </View>
 
-      {/* 🎮 ZONE DE JEU */}
+      {/* GAME */}
       <View
-        style={{ flex: 1 }}
+        style={styles.gameArea}
         onTouchStart={start}
         onTouchMove={move}
         onTouchEnd={end}
       >
         <Svg width="100%" height="100%">
 
-          {/* ✏️ PATH */}
+          {stars.map(star => {
+            if (collectedStars[star.id]) return null
+
+            return (
+              <G
+                key={star.id}
+                transform={`translate(${star.x - star.size / 2}, ${star.y - star.size / 2})`}
+              >
+                <StarSvg width={star.size} height={star.size} />
+              </G>
+            )
+          })}
+
           <Polyline
             points={path.map(p => `${p.x},${p.y}`).join(" ")}
             stroke="#38bdf8"
@@ -99,24 +130,14 @@ export default function GameScreen() {
             fill="none"
           />
 
-          {/* 🔵 POINTS */}
           {levelPoints.map(p => {
             const count = visited[p.id] ?? 0
 
             let fillColor = "white"
-            let strokeColor = "#000"
 
-            if (count > 0 && count < p.value) {
-              fillColor = "#93c5fd" // en cours
-            }
-
-            if (count === p.value) {
-              fillColor = "#22c55e" // validé ✅
-            }
-
-            if (count > p.value) {
-              fillColor = "#ef4444" // erreur ❌
-            }
+            if (count > 0 && count < p.value) fillColor = "#93c5fd"
+            if (count === p.value) fillColor = "#22c55e"
+            if (count > p.value) fillColor = "#ef4444"
 
             return (
               <G key={p.id}>
@@ -124,12 +145,10 @@ export default function GameScreen() {
                   cx={p.x}
                   cy={p.y}
                   r={p.radius}
-                  stroke={strokeColor}
+                  stroke="#000"
                   strokeWidth={3}
                   fill={fillColor}
                 />
-
-                {/* compteur dynamique */}
                 <Text
                   x={p.x}
                   y={p.y + 6}
@@ -146,45 +165,29 @@ export default function GameScreen() {
         </Svg>
       </View>
 
-      {/* 📢 BANNER */}
-      <View style={{
-        width: "100%",
-        alignItems: "center",
-        backgroundColor: "#000"
-      }}>
+      {/* BANNER */}
+      <View style={styles.bannerContainer}>
         <AdBanner placement="home" />
       </View>
 
-      {/* 🎉 MODAL */}
+      {/* MODAL */}
       <Modal visible={showModal} transparent animationType="fade">
-        <View style={{
-          flex: 1,
-          backgroundColor: "rgba(0,0,0,0.6)",
-          justifyContent: "center",
-          alignItems: "center"
-        }}>
-          <View style={{
-            backgroundColor: "white",
-            padding: 30,
-            borderRadius: 16,
-            alignItems: "center",
-            width: 260
-          }}>
-            <RNText style={{ fontSize: 22, marginBottom: 10 }}>
-              🎉 Niveau validé !
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <RNText style={styles.modalTitle}>🎉 Niveau validé !</RNText>
+
+            <RNText>
+              ⭐ {Object.keys(collectedStars).length} / {stars.length}
             </RNText>
 
             <Pressable
-              onPress={() => setShowModal(false)}
-              style={{
-                marginTop: 10,
-                paddingVertical: 12,
-                paddingHorizontal: 20,
-                backgroundColor: "#22c55e",
-                borderRadius: 10
+              onPress={() => {
+                setShowModal(false)
+                resetStars()
               }}
+              style={styles.continueButton}
             >
-              <RNText style={{ color: "white", fontWeight: "bold" }}>
+              <RNText style={styles.continueText}>
                 Continuer
               </RNText>
             </Pressable>
