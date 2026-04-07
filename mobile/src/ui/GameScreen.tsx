@@ -1,12 +1,13 @@
 import { View, Modal, Text as RNText, Pressable } from "react-native"
 import Svg, { Circle, Text, Polyline, G } from "react-native-svg"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { Point } from "@/src/core/models/Point"
 import { useGame } from "@/src/hooks/useGame"
 import { AdBanner } from "@/src/ads/AdBanner"
 import { useInterstitial } from "@/src/ads/useInterstitial"
 import { useAds } from "@/src/ads/AdProvider"
-import StarSvg from "../../assets/gameimg/star_w46_h46.svg"
+import StarEnabled from "../../assets/gameimg/star_w46_h46.svg"
+import StarDisabled from "../../assets/gameimg/star_token_disabled_w46_h46.svg"
 import { styles } from "./GameScreen.styles"
 
 type Star = {
@@ -44,7 +45,15 @@ export default function GameScreen() {
 
   const { path, visited, handleStart, handleMove, handleEnd } = useGame(levelPoints)
 
+  // ✅ Vérifie si le tracé est valide
+  const isPathValid = useMemo(() => {
+    return levelPoints.every(p => (visited[p.id] ?? 0) === p.value)
+  }, [visited])
+
   function checkStars(x: number, y: number) {
+    // ❌ Bloqué si path invalide
+    if (!isPathValid) return
+
     stars.forEach(star => {
       if (collectedStars[star.id]) return
 
@@ -90,7 +99,6 @@ export default function GameScreen() {
   return (
     <View style={styles.container}>
 
-      {/* HEADER */}
       <View style={styles.header}>
         <RNText style={styles.title}>Level 1</RNText>
 
@@ -99,7 +107,6 @@ export default function GameScreen() {
         </Pressable>
       </View>
 
-      {/* GAME */}
       <View
         style={styles.gameArea}
         onTouchStart={start}
@@ -111,12 +118,14 @@ export default function GameScreen() {
           {stars.map(star => {
             if (collectedStars[star.id]) return null
 
+            const StarIcon = isPathValid ? StarEnabled : StarDisabled
+
             return (
               <G
                 key={star.id}
                 transform={`translate(${star.x - star.size / 2}, ${star.y - star.size / 2})`}
               >
-                <StarSvg width={star.size} height={star.size} />
+                <StarIcon width={star.size} height={star.size} />
               </G>
             )
           })}
@@ -165,12 +174,10 @@ export default function GameScreen() {
         </Svg>
       </View>
 
-      {/* BANNER */}
       <View style={styles.bannerContainer}>
         <AdBanner placement="home" />
       </View>
 
-      {/* MODAL */}
       <Modal visible={showModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
