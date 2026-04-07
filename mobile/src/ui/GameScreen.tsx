@@ -1,6 +1,6 @@
 import { View, Modal, Text as RNText, Pressable } from "react-native"
 import Svg, { Circle, Text, Polyline, G } from "react-native-svg"
-import { useState, useMemo } from "react"
+import { useState } from "react"
 import { Point } from "@/src/core/models/Point"
 import { useGame } from "@/src/hooks/useGame"
 import { AdBanner } from "@/src/ads/AdBanner"
@@ -17,6 +17,7 @@ type Star = {
   size: number
 }
 
+// ✅ LEVEL DATA (demain → API)
 const levelPoints: Point[] = [
   { id: "1", x: 100, y: 240, value: 1, radius: 32 },
   { id: "2", x: 200, y: 240, value: 2, radius: 32 },
@@ -37,57 +38,39 @@ const initialStars: Star[] = [
 
 export default function GameScreen() {
   const [showModal, setShowModal] = useState(false)
-  const [stars, setStars] = useState(initialStars)
-  const [collectedStars, setCollectedStars] = useState<Record<string, boolean>>({})
 
   const { adMode, canLoadAd } = useAds()
   const { show } = useInterstitial()
 
-  const { path, visited, handleStart, handleMove, handleEnd } = useGame(levelPoints)
+  // ✅ STARS STATE (déplacé ici)
+  const [stars] = useState(initialStars)
+  const [collectedStars, setCollectedStars] = useState<Record<string, boolean>>({})
 
-  // ✅ Vérifie si le tracé est valide
-  const isPathValid = useMemo(() => {
-    return levelPoints.every(p => (visited[p.id] ?? 0) === p.value)
-  }, [visited])
-
-  function checkStars(x: number, y: number) {
-    // ❌ Bloqué si path invalide
-    if (!isPathValid) return
-
-    stars.forEach(star => {
-      if (collectedStars[star.id]) return
-
-      const dist = Math.hypot(x - star.x, y - star.y)
-      if (dist <= star.size / 2) {
-        setCollectedStars(prev => ({ ...prev, [star.id]: true }))
-      }
-    })
-  }
-
-  function resetStars() {
-    setStars(initialStars)
-    setCollectedStars({})
-  }
+  // ✅ GAME ENGINE
+  const {
+    path,
+    visited,
+    isPathValid,
+    handleStart,
+    handleMove,
+    handleEnd,
+    resetAll,
+  } = useGame(levelPoints, stars, collectedStars, setCollectedStars)
 
   function start(e: any) {
     const { locationX, locationY } = e.nativeEvent
     handleStart(locationX, locationY)
-    checkStars(locationX, locationY)
   }
 
   function move(e: any) {
     const { locationX, locationY } = e.nativeEvent
     handleMove(locationX, locationY)
-    checkStars(locationX, locationY)
   }
 
   function end() {
     const result = handleEnd()
 
-    if (!result) {
-      resetStars()
-      return
-    }
+    if (!result) return
 
     if (adMode === "high" && canLoadAd()) {
       show()
@@ -98,11 +81,10 @@ export default function GameScreen() {
 
   return (
     <View style={styles.container}>
-
       <View style={styles.header}>
         <RNText style={styles.title}>Level 1</RNText>
 
-        <Pressable onPress={resetStars} style={styles.resetButton}>
+        <Pressable onPress={resetAll} style={styles.resetButton}>
           <RNText style={styles.resetText}>Reset</RNText>
         </Pressable>
       </View>
@@ -115,6 +97,7 @@ export default function GameScreen() {
       >
         <Svg width="100%" height="100%">
 
+          {/* ⭐ STARS */}
           {stars.map(star => {
             if (collectedStars[star.id]) return null
 
@@ -130,20 +113,19 @@ export default function GameScreen() {
             )
           })}
 
+          {/* ✏️ PATH */}
           <Polyline
             points={path.map(p => `${p.x},${p.y}`).join(" ")}
             stroke="#38bdf8"
             strokeWidth={8}
-            strokeLinecap="round"
-            strokeLinejoin="round"
             fill="none"
           />
 
+          {/* 🔵 POINTS */}
           {levelPoints.map(p => {
             const count = visited[p.id] ?? 0
 
             let fillColor = "white"
-
             if (count > 0 && count < p.value) fillColor = "#93c5fd"
             if (count === p.value) fillColor = "#22c55e"
             if (count > p.value) fillColor = "#ef4444"
@@ -170,7 +152,6 @@ export default function GameScreen() {
               </G>
             )
           })}
-
         </Svg>
       </View>
 
@@ -178,6 +159,7 @@ export default function GameScreen() {
         <AdBanner placement="home" />
       </View>
 
+      {/* ✅ MODAL */}
       <Modal visible={showModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -190,7 +172,7 @@ export default function GameScreen() {
             <Pressable
               onPress={() => {
                 setShowModal(false)
-                resetStars()
+                resetAll()
               }}
               style={styles.continueButton}
             >
@@ -201,7 +183,6 @@ export default function GameScreen() {
           </View>
         </View>
       </Modal>
-
     </View>
   )
 }
