@@ -5,6 +5,7 @@ import * as NavigationBar from "expo-navigation-bar";
 import { StatusBar } from "expo-status-bar";
 import { AdProvider } from "@/src/ads/AdProvider";
 import * as SplashScreen from "expo-splash-screen";
+import { initDatabase } from "@/src/data/sources/local/sqlite/initDatabase"
 
 
 export default function Layout() {
@@ -13,6 +14,7 @@ useEffect(() => {
   async function init() {
     try {
       await SplashScreen.preventAutoHideAsync();
+      await initDatabase();
 
       if (Platform.OS === "android") {
         await NavigationBar.setVisibilityAsync("hidden");
