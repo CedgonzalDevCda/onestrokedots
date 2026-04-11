@@ -1,19 +1,30 @@
-import * as SQLite from 'expo-sqlite'
+import * as SQLite from "expo-sqlite";
 
-const database = SQLite.openDatabaseSync('game.db')
+let database: SQLite.SQLiteDatabase | null = null;
 
-type SQLiteValue = string | number | null
+async function getDb() {
+  if (!database) {
+    database = await SQLite.openDatabaseAsync("game.db");
+  }
+  return database;
+}
+
+type SQLiteValue = string | number | null;
 
 export const db = {
-  run(query: string, params: SQLiteValue[] = []) {
-    return database.runSync(query, params)
+  async run(query: string, params: SQLiteValue[] = []) {
+    const db = await getDb();
+    return await db.runAsync(query, params);
   },
 
-  get<T>(query: string, params: SQLiteValue[] = []): T | null {
-    return database.getFirstSync<T>(query, params) ?? null
+  async get<T>(query: string, params: SQLiteValue[] = []): Promise<T | null> {
+    const db = await getDb();
+    const result = await db.getFirstAsync<T>(query, params);
+    return result ?? null;
   },
 
-  getAll<T>(query: string, params: SQLiteValue[] = []): T[] {
-    return database.getAllSync<T>(query, params)
-  }
-}
+  async getAll<T>(query: string, params: SQLiteValue[] = []): Promise<T[]> {
+    const db = await getDb();
+    return await db.getAllAsync<T>(query, params);
+  },
+};

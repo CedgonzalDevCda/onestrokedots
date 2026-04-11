@@ -72,24 +72,27 @@ export default function GameScreen() {
     handleMove(locationX, locationY)
   }
 
-  function end() {
-    const result = handleEnd()
-    if (!result) return
+function end() {
+  handleEndAsync()
+}
 
-    const starsEarned = Object.values(collectedStars).filter(Boolean).length
+async function handleEndAsync() {
+  const result = handleEnd()
+  if (!result) return
 
-    // ✅ ✅ FIX PRINCIPAL
-    progression.completeLevel(level.id, starsEarned)
+  const starsEarned = Object.values(collectedStars).filter(Boolean).length
 
-    console.log("SAVE", level.id, starsEarned)
-    console.log("STATE AFTER", progression.getState())
+  await progression.completeLevel(level.id, starsEarned)
 
-    if (adMode === "high" && canLoadAd()) {
-      show()
-    } else {
-      setShowModal(true)
-    }
+  console.log("SAVE", level.id, starsEarned)
+  console.log("STATE AFTER", progression.getState())
+
+  if (adMode === "high" && canLoadAd()) {
+    show()
+  } else {
+    setShowModal(true)
   }
+}
 
   function handleRetry() {
     setShowModal(false)

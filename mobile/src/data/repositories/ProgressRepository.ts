@@ -1,11 +1,11 @@
-import { db } from "../sources/local/sqlite/db"
-import { PlayerState } from "@/src/game/progression/PlayerState"
+import { db } from "../sources/local/sqlite/db";
+import { PlayerState } from "@/src/game/progression/PlayerState";
 
-const KEY = "main"
+const KEY = "main";
 
 type ProgressRow = {
-  data: string
-}
+  data: string;
+};
 
 const DEFAULT_STATE: PlayerState = {
   completedLevels: {},
@@ -13,21 +13,26 @@ const DEFAULT_STATE: PlayerState = {
     gold: 0,
     bubble: 0,
   },
-}
+};
 
 export const ProgressRepository = {
-  get(): PlayerState {
-    const row = db.get<ProgressRow>(
+  async get(): Promise<PlayerState> {
+    const row = await db.get<ProgressRow>(
       "SELECT data FROM progress WHERE id = ?",
       [KEY]
-    )
+    );
 
     if (!row) {
-      return DEFAULT_STATE
+      await db.run(
+        "INSERT INTO progress (id, data) VALUES (?, ?)",
+        [KEY, JSON.stringify(DEFAULT_STATE)]
+      );
+
+      return DEFAULT_STATE;
     }
 
     try {
-      const parsed = JSON.parse(row.data)
+      const parsed = JSON.parse(row.data);
 
       return {
         completedLevels: parsed.completedLevels ?? {},
@@ -35,20 +40,26 @@ export const ProgressRepository = {
           gold: parsed.currency?.gold ?? 0,
           bubble: parsed.currency?.bubble ?? 0,
         },
-      }
+      };
     } catch {
-      return DEFAULT_STATE
+      // fallback sécurisé si JSON corrompu
+      await db.run(
+        "UPDATE progress SET data = ? WHERE id = ?",
+        [JSON.stringify(DEFAULT_STATE), KEY]
+      );
+
+      return DEFAULT_STATE;
     }
   },
 
-  save(state: PlayerState): void {
-    db.run(
+  async save(state: PlayerState): Promise<void> {
+    await db.run(
       "INSERT OR REPLACE INTO progress (id, data) VALUES (?, ?)",
       [KEY, JSON.stringify(state)]
-    )
+    );
   },
 
-  reset(): void {
-    db.run("DELETE FROM progress WHERE id = ?", [KEY])
+  async reset(): Promise<void> {
+    await db.run("DELETE FROM progress WHERE id = ?", [KEY]);
   },
-}
+};

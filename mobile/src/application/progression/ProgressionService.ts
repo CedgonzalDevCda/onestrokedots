@@ -1,23 +1,31 @@
 import { PlayerState } from "../../game/progression/PlayerState"
-import { LevelRepository, levelRepository } from "@/src/data/repositories/LevelRepository"
+import { LevelRepository } from "@/src/data/repositories/LevelRepository"
+import { ProgressRepository } from "@/src/data/repositories/ProgressRepository"
 
 export class ProgressionService {
-  constructor(
-    private state: PlayerState,
-    private repo: LevelRepository
-  ) {}
+  private state: PlayerState | null = null
+
+  constructor(private repo: LevelRepository) {}
+
+  async init() {
+    this.state = await ProgressRepository.get()
+  }
+
+  private ensureState() {
+    if (!this.state) {
+      throw new Error("ProgressionService not initialized")
+    }
+  }
 
   // ✅ LEVEL UNLOCK
   isLevelUnlocked(worldId: string, levelId: string): boolean {
+    this.ensureState()
+
     const world = this.repo.getWorld(worldId)
     if (!world) return false
 
     const index = world.levelList.findIndex(l => l.id === levelId)
-
-    // sécurité si level introuvable
     if (index === -1) return false
-
-    // premier level toujours unlock
     if (index === 0) return true
 
     const previousLevel = world.levelList[index - 1]
@@ -26,53 +34,63 @@ export class ProgressionService {
 
   // ✅ LEVEL COMPLETED
   isLevelCompleted(levelId: string): boolean {
-    return this.state.completedLevels[levelId] !== undefined
+    this.ensureState()
+    return this.state!.completedLevels[levelId] !== undefined
   }
 
   // ✅ STARS
   getStars(levelId: string): number {
-    return this.state.completedLevels[levelId] ?? 0
+    this.ensureState()
+    return this.state!.completedLevels[levelId] ?? 0
   }
 
-    // ✅ BUBBLES
-
+  // ✅ BUBBLES
   getBubbles(): number {
-    return this.state.currency.bubble
+    this.ensureState()
+    return this.state!.currency.bubble
   }
 
-  addBubbles(amount: number) {
-    this.state.currency.bubble += amount
+  async addBubbles(amount: number) {
+    this.ensureState()
+    this.state!.currency.bubble += amount
+    await ProgressRepository.save(this.state!)
   }
 
-  spendBubbles(amount: number): boolean {
-    if (this.state.currency.bubble < amount) return false
+  async spendBubbles(amount: number): Promise<boolean> {
+    this.ensureState()
 
-    this.state.currency.bubble -= amount
+    if (this.state!.currency.bubble < amount) return false
+
+    this.state!.currency.bubble -= amount
+    await ProgressRepository.save(this.state!)
+
     return true
   }
 
+  // ✅ COMPLETE LEVEL (FIX ICI)
+  async completeLevel(levelId: string, stars: number) {
+    this.ensureState()
 
-  // ✅ COMPLETE LEVEL
-  completeLevel(levelId: string, stars: number) {
-    const currentStars = this.getStars(levelId)
+    const currentStars = this.state!.completedLevels[levelId] ?? 0
 
-    // garder le meilleur score
     if (stars > currentStars) {
-      this.state.completedLevels[levelId] = stars
+      this.state!.completedLevels[levelId] = stars
     }
 
-    // reward simple
-    this.state.currency.gold += stars * 10
+    this.state!.currency.gold += stars * 10
+
+    // ✅ PERSISTENCE
+    await ProgressRepository.save(this.state!)
   }
 
   // ✅ WORLD UNLOCK
   isWorldUnlocked(worldId: string): boolean {
+    this.ensureState()
+
     const worlds = this.repo.getWorlds()
     const index = worlds.findIndex(w => w.id === worldId)
 
     if (index === -1) return false
-
-    // premier world toujours unlock
     if (index === 0) return true
 
     const previousWorld = worlds[index - 1]
@@ -84,6 +102,8 @@ export class ProgressionService {
 
   // ✅ COMPLETION %
   getWorldCompletion(worldId: string): number {
+    this.ensureState()
+
     const world = this.repo.getWorld(worldId)
     if (!world) return 0
 
@@ -97,25 +117,13 @@ export class ProgressionService {
     return Math.floor((completed / total) * 100)
   }
 
-  // ✅ GET STATE (pour save)
   getState(): PlayerState {
-    return this.state
+    this.ensureState()
+    return this.state!
   }
 }
 
-//
-// ✅ ✅ INSTANCE GLOBALE (FIX PRINCIPAL)
-//
+// ✅ INSTANCE GLOBALE PROPRE
+import { levelRepository } from "@/src/data/repositories/LevelRepository"
 
-const defaultState: PlayerState = {
-  completedLevels: {},
-  currency: {
-    gold: 0,
-    bubble: 0
-  }
-}
-
-export const progression = new ProgressionService(
-  defaultState,
-  levelRepository
-)
+export const progression = new ProgressionService(levelRepository)

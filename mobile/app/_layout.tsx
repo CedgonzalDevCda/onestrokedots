@@ -1,34 +1,42 @@
 import { Stack } from "expo-router";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Platform } from "react-native";
 import * as NavigationBar from "expo-navigation-bar";
 import { StatusBar } from "expo-status-bar";
 import { AdProvider } from "@/src/ads/AdProvider";
 import * as SplashScreen from "expo-splash-screen";
 import { initDatabase } from "@/src/data/sources/local/sqlite/initDatabase"
+import { progression } from "@/src/application/progression/ProgressionService"
+
 
 
 export default function Layout() {
+  const [ready, setReady] = useState(false);
 
-useEffect(() => {
-  async function init() {
-    try {
-      await SplashScreen.preventAutoHideAsync();
-      await initDatabase();
+  useEffect(() => {
+    async function init() {
+      try {
+        await SplashScreen.preventAutoHideAsync();
 
-      if (Platform.OS === "android") {
-        await NavigationBar.setVisibilityAsync("hidden");
+        await initDatabase();
+        await progression.init();
+
+        if (Platform.OS === "android") {
+          await NavigationBar.setVisibilityAsync("hidden");
+        }
+
+        setReady(true); // ✅ IMPORTANT
+      } catch (e) {
+        console.log("Init error", e);
+      } finally {
+        await SplashScreen.hideAsync();
       }
-    } catch (e) {
-      console.log("Init error", e);
-    } finally {
-      await SplashScreen.hideAsync();
     }
-  }
 
-  init();
-}, []);
+    init();
+  }, []);
 
+  if (!ready) return null; // ✅ BLOQUE LE RENDU
 
   return (
     <>
