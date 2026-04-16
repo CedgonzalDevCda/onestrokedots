@@ -21,7 +21,8 @@ export class ProgressionService {
   isLevelUnlocked(worldId: string, levelId: string): boolean {
     this.ensureState()
 
-    const world = this.repo.getWorld(worldId)
+    const world = this.repo.getWorldById(worldId)
+    
     if (!world) return false
 
     const index = world.levelList.findIndex(l => l.id === levelId)
@@ -104,7 +105,7 @@ export class ProgressionService {
   getWorldCompletion(worldId: string): number {
     this.ensureState()
 
-    const world = this.repo.getWorld(worldId)
+    const world = this.repo.getWorldById(worldId)
     if (!world) return 0
 
     const total = world.levelList.length

@@ -125,7 +125,7 @@ async function handleEndAsync() {
     setCollectedStars({})
     resetAll()
 
-    router.replace("/")
+    router.replace("/(game)/worlds")
   }
 
   return (

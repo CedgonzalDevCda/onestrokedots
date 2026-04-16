@@ -13,21 +13,19 @@ export class LevelRepository {
     return this.worlds
   }
 
-  getWorld(worldId: string): World | null {
+  getWorldById(worldId: string): World | null {
     return this.worlds.find(w => w.id === worldId) ?? null
   }
 
-getLevelsByWorld(worldId: string): Level[] {
-  const world = this.getWorld(worldId)
-  return world?.levelList ?? []
-}
+  getLevelsByWorld(worldId: string): Level[] {
+    const world = this.getWorldById(worldId)
+    return world?.levelList ?? []
+  }
 
-getLevel(worldId: string, levelId: string): Level | null {
-  const world = this.getWorld(worldId)
-  return world?.levelList.find(l => l.id === levelId) ?? null
-}
-
-
+  getLevel(worldId: string, levelId: string): Level | null {
+    const world = this.getWorldById(worldId)
+    return world?.levelList.find(l => l.id === levelId) ?? null
+  }
 
   getNextLevel(worldId: string, levelId: string): Level | null {
     const levels = this.getLevelsByWorld(worldId)

@@ -1,29 +1,77 @@
-import { View, Button, StyleSheet, ScrollView } from "react-native"
+import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native"
 import { router } from "expo-router"
-import { AdBanner } from "@/src/ads/AdBanner"
 
-export default function LevelSelect() {
+import { World } from "@/src/game/models/World"
+import { AdBanner } from "@/src/ads/AdBanner"
+import { progression } from "@/src/application/progression/ProgressionService"
+
+import StarCompleted from "@/assets/gameimg/star-completed.svg"
+import StarEmpty from "@/assets/gameimg/star-not-completed.svg"
+
+type Props = {
+  world: World
+}
+
+export default function LevelSelect({ world }: Props) {
   return (
     <View style={styles.container}>
-
-      {/* ✅ Bannière sticky */}
       <View style={styles.banner}>
         <AdBanner placement="world_levels" />
       </View>
 
-      {/* ✅ Contenu scrollable */}
-      <ScrollView contentContainerStyle={styles.content}>
+      <Pressable
+        onPress={() => router.back()}
+        style={styles.backBtn}
+      >
+        <Text style={styles.backText}>⬅️</Text>
+      </Pressable>
 
-        <Button
-          title="Level 1"
-          onPress={() => router.push("/play")}
-        />
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Text style={styles.title}>{world.name}</Text>
 
-        {/* 👉 tu pourras en ajouter d'autres ici */}
-        {/* <Button title="Level 2" ... /> */}
+        <View style={styles.grid}>
+          {world.levelList.map((level) => {
+            const isUnlocked = progression.isLevelUnlocked(
+              world.id,
+              level.id
+            )
 
+            const stars = progression.getStars(level.id)
+
+            return (
+              <Pressable
+                key={level.id}
+                style={[
+                  styles.level,
+                  isUnlocked ? styles.available : styles.locked
+                ]}
+                onPress={() => {
+                  if (!isUnlocked) return
+
+                  router.push({
+                    pathname: "/play",
+                    params: {
+                      worldId: world.id,
+                      levelId: level.id
+                    }
+                  })
+                }}
+              >
+                <Text style={styles.levelText}>
+                  {level.name.replace("Level ", "")}
+                </Text>
+
+                <View style={styles.starsRow}>
+                  {Array.from({ length: 3 }).map((_, i) => {
+                    const Star = i < stars ? StarCompleted : StarEmpty
+                    return <Star key={i} width={12} height={12} />
+                  })}
+                </View>
+              </Pressable>
+            )
+          })}
+        </View>
       </ScrollView>
-
     </View>
   )
 }
@@ -35,22 +83,72 @@ const styles = StyleSheet.create({
   },
 
   banner: {
+    marginTop: 40,
     width: "100%",
     alignItems: "center",
     backgroundColor: "#000",
     paddingVertical: 4,
-
-    // effet pro
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
 
-  content: {
-    flexGrow: 1,
+  backBtn: {
+    marginTop: 10,
+    marginRight: 10,
+    alignSelf: "flex-end",
+    backgroundColor: "#222",
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+
+  backText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
+  scrollContent: {
+    alignItems: "center",
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+
+  title: {
+    fontSize: 28,
+    marginBottom: 30
+  },
+
+  grid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    width: 300,
+    justifyContent: "center"
+  },
+
+  level: {
+    width: 60,
+    height: 60,
+    margin: 10,
+    borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 20,
-  }
+    borderWidth: 1
+  },
+
+  levelText: {
+    fontSize: 18
+  },
+
+  available: {
+    backgroundColor: "white"
+  },
+
+  locked: {
+    backgroundColor: "#ccc"
+  },
+
+  starsRow: {
+    flexDirection: "row",
+    marginTop: 4,
+    gap: 2
+  },
 })
