@@ -64,7 +64,7 @@ export default function Home() {
 
   return (
     <LinearGradient colors={["#0F172A", "#283E74"]} style={styles.container}>
-      
+
       {/* HEADER */}
       <View style={styles.topOverlay}>
         <View style={styles.banner}>
@@ -97,25 +97,25 @@ export default function Home() {
         </LinearGradient>
 
         {/* Buttons */}
-<View style={styles.buttonsRow}>
-  {/* Jouer */}
-  <Pressable
-    style={styles.squareButton}
-    onPress={() => router.push("/worlds")}
-  >
-    <PlayIcon width={50} height={50} />
-    <Text style={styles.buttonText}>Jouer</Text>
-  </Pressable>
+        <View style={styles.buttonsRow}>
+          {/* Jouer */}
+          <Pressable
+            style={styles.squareButton}
+            onPress={() => router.push("/worlds")}
+          >
+            <PlayIcon width={50} height={50} />
+            <Text style={styles.buttonText}>Jouer</Text>
+          </Pressable>
 
-  {/* Collection */}
-  <Pressable
-    style={styles.squareButton}
-    onPress={() => router.push("/collections")}
-  >
-    <CollectionIcon width={50} height={50} />
-    <Text style={styles.buttonText}>Collection</Text>
-  </Pressable>
-</View>
+          {/* Collection */}
+          <Pressable
+            style={styles.squareButton}
+            onPress={() => router.push("/collections")}
+          >
+            <CollectionIcon width={50} height={50} />
+            <Text style={styles.buttonText}>Collection</Text>
+          </Pressable>
+        </View>
 
 
       </View>

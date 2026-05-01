@@ -5,10 +5,11 @@ import * as NavigationBar from "expo-navigation-bar";
 import { StatusBar } from "expo-status-bar";
 import { AdProvider } from "@/src/ads/AdProvider";
 import * as SplashScreen from "expo-splash-screen";
-import { initDatabase } from "@/src/data/sources/local/sqlite/initDatabase"
-import { progression } from "@/src/application/progression/ProgressionService"
+import { initDatabase } from "@/src/data/sources/local/sqlite/initDatabase";
+import { progression } from "@/src/application/progression/ProgressionService";
 
-
+// ✅ AJOUT
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function Layout() {
   const [ready, setReady] = useState(false);
@@ -25,7 +26,7 @@ export default function Layout() {
           await NavigationBar.setVisibilityAsync("hidden");
         }
 
-        setReady(true); // ✅ IMPORTANT
+        setReady(true);
       } catch (e) {
         console.log("Init error", e);
       } finally {
@@ -36,10 +37,10 @@ export default function Layout() {
     init();
   }, []);
 
-  if (!ready) return null; // ✅ BLOQUE LE RENDU
+  if (!ready) return null;
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar hidden />
 
       <AdProvider>
@@ -52,6 +53,6 @@ export default function Layout() {
           <Stack.Screen name="(game)/settings" />
         </Stack>
       </AdProvider>
-    </>
+    </GestureHandlerRootView>
   );
 }

@@ -57,4 +57,29 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     color: "#fff",
   },
+
+  fullscreen: {
+  flex: 1,
+},
+
+introOverlay: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  justifyContent: "center",
+  alignItems: "center",
+  backgroundColor: "#0F172A",
+  zIndex: 999,
+},
+
+introText: {
+  color: "#fff",
+  fontSize: 28,
+  fontWeight: "600",
+  textAlign: "center",
+},
+
+
 });
