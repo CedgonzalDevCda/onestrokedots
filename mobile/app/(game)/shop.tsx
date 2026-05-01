@@ -1,9 +1,5 @@
-import { View, Text } from "react-native"
+import ShopScreen from "@/src/presentation/screens/ShopScreen"
 
 export default function Shop() {
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Text>Shop (coming soon)</Text>
-    </View>
-  )
+  return <ShopScreen />
 }
