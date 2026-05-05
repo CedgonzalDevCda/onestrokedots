@@ -40,7 +40,7 @@ export default function Layout() {
   if (!ready) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }} testID="app-root">
       <StatusBar hidden />
 
       <AdProvider>
