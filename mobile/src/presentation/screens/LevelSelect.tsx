@@ -1,9 +1,9 @@
 import { View, Text, Pressable, StyleSheet, ScrollView } from "react-native"
 import { router } from "expo-router"
 
-import { World } from "@/src/game/models/World"
-import { AdBanner } from "@/src/ads/AdBanner"
-import { progression } from "@/src/application/progression/ProgressionService"
+import { World } from "@/src/core/models/World"
+import { AdBanner } from "@/src/infrastructure/ads/AdBanner"
+import { progression } from "@/src/meta/progression/ProgressionService"
 
 import StarCompleted from "@/assets/gameimg/star-completed.svg"
 import StarEmpty from "@/assets/gameimg/star-not-completed.svg"

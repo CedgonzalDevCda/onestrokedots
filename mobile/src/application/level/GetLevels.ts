@@ -1,6 +1,6 @@
-import { levelRepository } from "@/src/data/repositories/LevelRepository"
-import { ProgressRepository } from "@/src/data/repositories/ProgressRepository"
-import { Level } from "@/src/game/models/Level"
+import { levelRepository } from "@/src/infrastructure/repositories/LevelRepository"
+import { ProgressRepository } from "@/src/infrastructure/repositories/ProgressRepository"
+import { Level } from "@/src/core/models/Level"
 
 export type LevelWithProgress = Level & {
   isCompleted: boolean

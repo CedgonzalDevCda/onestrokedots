@@ -14,8 +14,8 @@ import Animated, {
 
 import { styles } from "./home.styles";
 
-import { AdBanner } from "@/src/ads/AdBanner";
-import GameHeader from "@/src/presentation/components/GameHeader";
+import { AdBanner } from "@/src/infrastructure/ads/AdBanner";
+import GameHeader from "@/src/presentation/ui/GameHeader";
 
 import LogoGame from "@/assets/gameimg/logo-game.svg";
 import NoAdsIcon from "@/assets/gameimg/no-ads-icon.svg";

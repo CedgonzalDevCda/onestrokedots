@@ -1,5 +1,5 @@
-import { ProgressRepository } from "@/src/data/repositories/ProgressRepository"
-import { PlayerState } from "@/src/game/progression/PlayerState"
+import { ProgressRepository } from "@/src/infrastructure/repositories/ProgressRepository"
+import { PlayerState } from "@/src/meta/progression/PlayerState"
 
 export async function completeLevel(
   levelId: string,

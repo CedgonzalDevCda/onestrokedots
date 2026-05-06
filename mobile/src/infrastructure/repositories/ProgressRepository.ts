@@ -1,5 +1,5 @@
-import { db } from "../sources/local/sqlite/db";
-import { PlayerState } from "@/src/game/progression/PlayerState";
+import { db } from "../persistence/sqlite/db";
+import { PlayerState } from "@/src/meta/progression/PlayerState";
 
 const KEY = "main";
 

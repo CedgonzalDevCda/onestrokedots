@@ -1,6 +1,6 @@
 import { useState } from "react"
-import { Point } from "@/src/game/models/Point"
-import { Validator } from "@/src/game/engine/Validator"
+import { Point } from "@/src/core/models/Point"
+import { Validator } from "@/src/core/engine/Validator"
 
 type Vec = { x: number; y: number }
 

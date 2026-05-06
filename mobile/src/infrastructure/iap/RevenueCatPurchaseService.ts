@@ -2,7 +2,7 @@ import Purchases, {
   CustomerInfo,
   PurchasesPackage,
 } from "react-native-purchases"
-import { IPurchaseService } from "@/src/domain/purchases"
+import { IPurchaseService } from "@/src/meta/purchase/purchases"
 
 const ENTITLEMENT_ID = "OneStrokeDotsNoPub"
 

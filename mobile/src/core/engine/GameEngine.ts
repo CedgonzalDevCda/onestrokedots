@@ -1,4 +1,4 @@
-import { Point } from "@/src/game/models/Point"
+import { Point } from "@/src/core/models/Point"
 import { CollisionEngine } from "./CollisionEngine"
 
 export class GameEngine {

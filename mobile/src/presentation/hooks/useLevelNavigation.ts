@@ -1,4 +1,4 @@
-import { levelRepository } from "@/src/data/repositories/LevelRepository"
+import { levelRepository } from "@/src/infrastructure/repositories/LevelRepository"
 
 export function useLevelNavigation() {
   function getLevel(worldId: string, levelId: string) {

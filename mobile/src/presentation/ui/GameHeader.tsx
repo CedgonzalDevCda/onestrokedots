@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from "react-native"
 import { router } from "expo-router"
-import { progression } from "@/src/application/progression/ProgressionService"
+import { progression } from "@/src/meta/progression/ProgressionService"
 import SettingsIcon from "@/assets/gameimg/settings-icon.svg"
 import GoldIcon from "@/assets/gameimg/money-gold-icon.svg"
 import BubbleIcon from "@/assets/gameimg/money-bubble-icon.svg"

@@ -1,6 +1,6 @@
-import { PlayerState } from "../../game/progression/PlayerState"
-import { LevelRepository } from "@/src/data/repositories/LevelRepository"
-import { ProgressRepository } from "@/src/data/repositories/ProgressRepository"
+import { PlayerState } from "./PlayerState"
+import { LevelRepository } from "@/src/infrastructure/repositories/LevelRepository"
+import { ProgressRepository } from "@/src/infrastructure/repositories/ProgressRepository"
 
 export class ProgressionService {
   private state: PlayerState | null = null
@@ -125,6 +125,6 @@ export class ProgressionService {
 }
 
 // ✅ INSTANCE GLOBALE PROPRE
-import { levelRepository } from "@/src/data/repositories/LevelRepository"
+import { levelRepository } from "@/src/infrastructure/repositories/LevelRepository"
 
 export const progression = new ProgressionService(levelRepository)

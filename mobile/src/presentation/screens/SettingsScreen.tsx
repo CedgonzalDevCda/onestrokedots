@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
-import { useAds, AdMode } from "@/src/ads/AdProvider"
-import { PaywallService } from "@/src/services/PaywallService"
+import { useAds, AdMode } from "@/src/infrastructure/ads/AdProvider"
+import { PaywallService } from "@/src/infrastructure/iap/PaywallService"
 import { useIAP } from "@/src/presentation/hooks/useIAP"
 
 

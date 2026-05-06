@@ -7,11 +7,11 @@ import { useGame } from "@/src/presentation/hooks/useGame"
 import { useLevelNavigation } from "@/src/presentation/hooks/useLevelNavigation"
 
 // ✅ ✅ FIX ICI
-import { progression } from "@/src/application/progression/ProgressionService"
+import { progression } from "@/src/meta/progression/ProgressionService"
 
-import { AdBanner } from "@/src/ads/AdBanner"
-import { useInterstitial } from "@/src/ads/useInterstitial"
-import { useAds } from "@/src/ads/AdProvider"
+import { AdBanner } from "@/src/infrastructure/ads/AdBanner"
+import { useInterstitial } from "@/src/infrastructure/ads/useInterstitial"
+import { useAds } from "@/src/infrastructure/ads/AdProvider"
 
 import StarEnabled from "@/assets/gameimg/star_w46_h46.svg"
 import StarDisabled from "@/assets/gameimg/star_token_disabled_w46_h46.svg"

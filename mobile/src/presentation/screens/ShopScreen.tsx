@@ -2,10 +2,10 @@ import { View, StyleSheet, Dimensions } from "react-native";
 import StoreBg from "@/assets/gameimg/store_bg.svg";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import ShopHeader from "@/src/presentation/components/shop/ShopHeader";
-import ShopGrid from "@/src/presentation/components/shop/ShopGrid";
-import CurrencyToggle, { Currency } from "@/src/presentation/components/shop/CurrencyToggle";
-import CurrencyBar from "@/src/presentation/components/shop/CurrencyBar";
+import ShopHeader from "@/src/presentation/features/shop/ShopHeader";
+import ShopGrid from "@/src/presentation/features/shop/ShopGrid";
+import CurrencyToggle, { Currency } from "@/src/presentation/features/shop/CurrencyToggle";
+import CurrencyBar from "@/src/presentation/features/shop/CurrencyBar";
 
 const { width, height } = Dimensions.get("window");
 

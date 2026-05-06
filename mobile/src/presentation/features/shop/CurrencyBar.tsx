@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ViewStyle, StyleProp } from "react-native"
-import { progression } from "@/src/application/progression/ProgressionService"
+import { progression } from "@/src/meta/progression/ProgressionService"
 import GoldIcon from "@/assets/gameimg/money-gold-icon.svg"
 import BubbleIcon from "@/assets/gameimg/money-bubble-icon.svg"
 

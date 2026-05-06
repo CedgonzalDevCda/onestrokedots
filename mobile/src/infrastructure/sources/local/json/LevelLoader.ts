@@ -1,6 +1,6 @@
-import { World } from "@/src/game/models/World"
-import { Level } from "@/src/game/models/Level"
-import rawWorld from "../../../levels/world1.json"
+import { World } from "@/src/core/models/World"
+import { Level } from "@/src/core/models/Level"
+import rawWorld from "../../../../data/levels/world1.json"
 
 export const LevelLoader = {
   loadWorlds(): World[] {

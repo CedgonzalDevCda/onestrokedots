@@ -1,5 +1,5 @@
-import { World } from "@/src/game/models/World"
-import { Level } from "@/src/game/models/Level"
+import { World } from "@/src/core/models/World"
+import { Level } from "@/src/core/models/Level"
 import { LevelLoader } from "../sources/local/json/LevelLoader"
 
 export class LevelRepository {

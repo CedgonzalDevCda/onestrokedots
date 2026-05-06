@@ -1,4 +1,4 @@
-import { db } from "@/src/data/sources/local/sqlite/db"
+import { db } from "@/src/infrastructure/persistence/sqlite/db"
 
 export function runMigrations() {
   // table interne pour suivre la version

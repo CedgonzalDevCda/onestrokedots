@@ -3,10 +3,10 @@ import { useState, useEffect } from "react";
 import { Platform } from "react-native";
 import * as NavigationBar from "expo-navigation-bar";
 import { StatusBar } from "expo-status-bar";
-import { AdProvider } from "@/src/ads/AdProvider";
+import { AdProvider } from "@/src/infrastructure/ads/AdProvider";
 import * as SplashScreen from "expo-splash-screen";
-import { initDatabase } from "@/src/data/sources/local/sqlite/initDatabase";
-import { progression } from "@/src/application/progression/ProgressionService";
+import { initDatabase } from "@/src/infrastructure/persistence/sqlite/initDatabase";
+import { progression } from "@/src/meta/progression/ProgressionService";
 
 // ✅ AJOUT
 import { GestureHandlerRootView } from "react-native-gesture-handler";

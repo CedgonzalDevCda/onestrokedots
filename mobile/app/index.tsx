@@ -6,8 +6,8 @@ import { useRouter } from "expo-router";
 import LogoGame from "@/assets/gameimg/logo-game.svg";
 import SlidingPanel, {
   SlidingPanelHandle,
-} from "@/src/presentation/components/ui/SlidingPanel";
-import AppMenuPanelContent from "@/src/presentation/components/menu/AppMenuPanelContent";
+} from "@/src/presentation/ui/SlidingPanel";
+import AppMenuPanelContent from "@/src/presentation/features/menu/AppMenuPanelContent";
 
 import { styles } from "./index.styles";
 

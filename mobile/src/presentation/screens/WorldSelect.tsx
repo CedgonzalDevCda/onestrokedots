@@ -4,11 +4,11 @@ import { router } from "expo-router"
 
 import LockedIcon from "@/assets/gameimg/locked-icon.svg"
 
-import { AdBanner } from "@/src/ads/AdBanner"
-import GameHeader from "@/src/presentation/components/GameHeader"
+import { AdBanner } from "@/src/infrastructure/ads/AdBanner"
+import GameHeader from "@/src/presentation/ui/GameHeader"
 
-import { levelRepository } from "@/src/data/repositories/LevelRepository"
-import { progression } from "@/src/application/progression/ProgressionService"
+import { levelRepository } from "@/src/infrastructure/repositories/LevelRepository"
+import { progression } from "@/src/meta/progression/ProgressionService"
 
 export default function WorldSelect() {
   const worlds = levelRepository.getWorlds()

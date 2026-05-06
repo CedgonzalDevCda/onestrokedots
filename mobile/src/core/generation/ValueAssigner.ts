@@ -1,4 +1,4 @@
-import { Point } from "@/src/game/models/Point"
+import { Point } from "@/src/core/models/Point"
 
 export const ValueAssigner = {
   assign(points: Point[], solution: string[]): Point[] {

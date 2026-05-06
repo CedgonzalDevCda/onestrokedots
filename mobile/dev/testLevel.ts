@@ -1,4 +1,4 @@
-import { LevelGenerator } from "@/src/game/generation/LevelGenerator"
+import { LevelGenerator } from "@/src/core/generation/LevelGenerator"
 
 const level = LevelGenerator.generate({
   rows: 4,
