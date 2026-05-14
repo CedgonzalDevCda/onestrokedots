@@ -1,39 +1,38 @@
-import { View, Text, StyleSheet } from "react-native";
-import BackButton from "@/src/presentation/ui/components/BackButton";
+import { View, Text, StyleSheet } from "react-native"
+import { router } from "expo-router"
+import BackButton from "@/src/presentation/ui/components/BackButton"
 
-type Props = {
-  onBack?: () => void;
-};
-
-export default function ShopHeader({ onBack }: Props) {
+export default function LevelSelectHeader({ title }: { title: string }) {
   return (
     <View style={styles.container}>
 
       {/* LEFT */}
       <View style={styles.side}>
-        {onBack && <BackButton onPress={onBack} />}
+        <BackButton onPress={() => router.back()} />
       </View>
 
       {/* CENTER */}
       <View style={styles.center}>
-        <Text style={styles.title}>Shop</Text>
+        <Text style={styles.title}>{title}</Text>
       </View>
 
       {/* RIGHT (symétrie) */}
       <View style={styles.side} />
 
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 50,
+    marginTop: 30,
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
   },
 
   side: {
+    marginLeft: 10,
     width: 60,
     alignItems: "center",
   },
@@ -45,7 +44,7 @@ const styles = StyleSheet.create({
 
   title: {
     color: "#FFFFFF",
-    fontSize: 22,
+    fontSize: 28,
     fontWeight: "bold",
   },
-});
+})

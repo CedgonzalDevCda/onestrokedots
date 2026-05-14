@@ -1,4 +1,4 @@
-import SettingsScreen from "@/src/presentation/screens/SettingsScreen"
+import SettingsScreen from "@/src/presentation/screens/SettingsScreen/SettingsScreen"
 
 export default function Settings(){
   return <SettingsScreen/>

@@ -1,214 +1,198 @@
-# 🧪 Testing Strategy — React Native + Expo (Clean Architecture)
+# 🧪 Testing Strategy
 
 ## 🎯 Objective
 
-This document defines a **clear and scalable testing strategy** for a mobile game built with:
-
-- React Native
-- Expo
-- Clean Architecture
-
-The goal is to ensure:
-- ✅ Reliability of game logic
-- ✅ Maintainability over time
-- ✅ Fast and useful test feedback
+Ensure the reliability, correctness, and scalability of the puzzle game by testing:
+- Core gameplay logic (engine)
+- Level generation
+- Application use cases
+- UI integration (light)
 
 ---
 
-## 🧠 Core Principle
+## 🧠 Testing Philosophy
 
-We test **by architectural layer**, from the most critical logic to the most external parts:
-
-```
-UI (Screens)
-↓
-Use Cases (Business Logic)
-↓
-Domain (Entities & Rules)
-↓
-Infrastructure (API, Storage)
-```
-
-> The deeper the layer, the more tests you should write.
+- Core must be **fully deterministic and testable in isolation**
+- UI should be **thin and minimally tested**
+- Prefer **pure functions and state machines**
+- Focus on **gameplay correctness over UI coverage**
 
 ---
 
-## 🏗️ Test Pyramid
+## 🧩 Test Layers
 
-### ✅ 70% — Unit Tests
-Focus on:
-- Domain logic
-- Use cases
-- Game mechanics
+### 1. ✅ Core Engine (HIGH PRIORITY)
 
-### ✅ 20% — Integration Tests
-Focus on:
-- Interaction between layers
-- Use case + repository
-- UI + state
+**Scope:**
+- CollisionEngine
+- GameEngine (future stateful)
+- PathEngine
+- Validator
 
-### ✅ 10% — E2E Tests (optional)
-Focus on:
-- Full user flows
+**Goals:**
+- Deterministic behavior
+- No React dependency
+- Full gameplay validation
 
----
-
-## 🧱 What to Test
-
-### 🎮 Domain Layer (HIGH PRIORITY)
-
-Pure logic, no dependencies.
-
-Test:
-- Game rules
-- Score calculations
-- Player progression
-- Validations
-
-✅ No mocks  
-✅ Fast and deterministic  
+**Tests:**
+- Segment → point collision
+- Path validity (no illegal intersections)
+- Visit count correctness
+- Edge cases (fast movement, overlapping points)
 
 ---
 
-### ⚙️ Use Cases (CORE LOGIC)
+### 2. 🎮 Gameplay Rules
 
-Encapsulates application behavior.
+**Source of truth:**
+- core-engine-rules.MD
 
-Test:
-- Business flows (e.g., play turn, unlock reward)
-- Data transformations
+**Tests:**
+- No self-intersection outside circles
+- Exact visit count per point
+- Star collection rules
+- Invalid move → reset
 
-Use mocks for dependencies (repositories).
-
-✅ Focus on behavior  
-✅ No UI / network  
-
----
-
-### 🌐 Infrastructure Layer
-
-Handles external systems:
-- API calls
-- AsyncStorage
-- Firebase
-
-Test:
-- Data fetching/parsing
-- Storage behavior
-
-✅ Mock external systems  
-✅ Avoid real network calls  
+**Strategy:**
+- Convert rules into unit tests
+- One test per rule
 
 ---
 
-### 📱 UI Layer (React Native)
+### 3. 🧬 Level Generation
 
-Use:
-- @testing-library/react-native
+**Modules:**
+- GraphGenerator
+- PathBuilder
+- SolverValidator
+- ValueAssigner
+- LevelGenerator
 
-Test:
-- User-visible behavior
-- Rendering of key elements
-- Interaction (press, input)
+**Tests:**
+- Generated graph validity
+- Path length correctness
+- No invalid edges in solution
+- Values match solution
+- Level always solvable
 
-❌ Avoid testing styles or implementation details  
-✅ Focus on what the user sees  
-
----
-
-## 🎯 Game-Specific Testing
-
-Critical areas to cover:
-
-- ✅ Player progression system
-- ✅ Save / load system
-- ✅ Economy (coins, rewards)
-- ✅ Randomness (mock randomness)
-
-Example:
-- Mock Math.random to ensure deterministic tests
+**Advanced:**
+- Property-based testing (random seeds)
+- Retry mechanism reliability
 
 ---
 
-## 🧰 Mocking Strategy
+### 4. 📦 Application Layer
 
-Keep it simple:
+**Modules:**
+- GetLevels
+- CompleteLevel
 
-✅ Mock:
-- Repositories
-- APIs
-- Storage
-- Navigation (lightly)
-
-❌ Avoid:
-- Over-mocking
-- Mocking React Native internals
+**Tests:**
+- Correct level retrieval
+- Progression updates
+- Completion triggers
 
 ---
 
-## 🗂️ Recommended Structure
+### 5. 🧪 Integration Tests
 
-```
-src/
-  domain/
-    __tests__/
-  usecases/
-    __tests__/
-  infrastructure/
-    __tests__/
-  presentation/
-    __tests__/
-```
+**Scope:**
+- useGame hook (temporary engine)
+
+**Tests:**
+- Full game loop:
+  - start → move → end
+- State transitions
+- Reset behavior
 
 ---
 
-## 🚀 Best Practices
+### 6. 🖥 UI / Routing
 
-### ✅ Test behavior, not implementation
+**Existing:**
+- smoke.test.ts
+- _layout.test.tsx
 
-Good:
-- Check outputs
-- Check user-visible results
+**Tests:**
+- Navigation works
+- Screens render without crash
 
-Bad:
-- Checking internal function calls unnecessarily
-
----
-
-### ✅ Keep tests simple
-
-- One responsibility per test
-- Clear naming
-- Minimal setup
+**Note:**
+UI testing is minimal by design
 
 ---
 
-### ✅ Deterministic tests
+## ⚠️ Current Gaps
 
-- No randomness
-- No real network
-- No timing issues
-
----
-
-## 📌 Recommended Order (for implementation)
-
-1. ✅ Use cases
-2. ✅ Domain logic
-3. ✅ UI (critical screens)
-4. ✅ Infrastructure (if needed)
-5. ✅ E2E (later)
+- GameEngine not fully tested (not source of truth)
+- Gameplay logic split between UI and core
+- No tests for star logic in core
+- No deterministic seed for generation
+- No end-to-end gameplay validation
 
 ---
 
-## 💥 Summary
+## 🚀 Target Testing Architecture
 
-- Test your **game logic heavily**
-- Keep UI tests focused and light
-- Mock external dependencies
-- Avoid complexity
-- Build confidence incrementally
+### ✅ Core-first approach
+
+- GameEngine becomes:
+  - Stateful
+  - Fully tested
+  - Independent from React
+
+### ✅ useGame becomes adapter
+
+- Only tested for:
+  - input/output mapping
+  - event forwarding
 
 ---
 
-A solid testing strategy ensures your game remains stable, scalable, and easy to evolve 🚀
+## 🧰 Tools & Practices
+
+- Jest (unit + integration)
+- Deterministic inputs (no Math.random without seed)
+- Snapshot tests for levels (optional)
+- Test data builders for levels
+
+---
+
+## 📌 Best Practices
+
+- One rule = one test
+- No logic in UI
+- Prefer small pure functions
+- Avoid hidden side effects
+- Keep tests readable (gameplay > implementation)
+
+---
+
+## ✅ Example Test Cases
+
+- Draw valid path → success
+- Draw invalid intersection → fail
+- Miss one visit → fail
+- Extra visit → fail
+- Collect all stars → success condition met
+
+---
+
+## 🧭 Evolution Plan
+
+1. Extract logic from useGame → GameEngine
+2. Add full GameEngine test suite
+3. Introduce seed-based generation
+4. Add solver for validation
+5. Add difficulty-based test scenarios
+
+---
+
+## 🏁 Conclusion
+
+The long-term stability of the game depends on:
+- A **fully tested core engine**
+- A **clear separation between UI and logic**
+- A **deterministic generation pipeline**
+
+Focus testing efforts on the core — everything else becomes easier.

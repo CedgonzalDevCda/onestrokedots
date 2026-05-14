@@ -1,4 +1,4 @@
-import ShopScreen from "@/src/presentation/screens/ShopScreen"
+import ShopScreen from "@/src/presentation/screens/ShopScreen/ShopScreen"
 
 export default function Shop() {
   return <ShopScreen />

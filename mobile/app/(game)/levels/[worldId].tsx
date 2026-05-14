@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from "expo-router"
-import LevelSelect from "@/src/presentation/screens/LevelSelect"
+import LevelSelect from "@/src/presentation/screens/LevelSelect/LevelSelect"
 import { levelRepository } from "@/src/infrastructure/repositories/LevelRepository"
 
 export default function Levels() {
