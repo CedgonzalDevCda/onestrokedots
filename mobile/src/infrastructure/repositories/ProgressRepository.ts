@@ -13,6 +13,8 @@ const DEFAULT_STATE: PlayerState = {
     gold: 0,
     bubble: 0,
   },
+  // ✅ AJOUT IMPORTANT
+  unlockedLevels: {},
 };
 
 export const ProgressRepository = {
@@ -36,10 +38,14 @@ export const ProgressRepository = {
 
       return {
         completedLevels: parsed.completedLevels ?? {},
+
         currency: {
           gold: parsed.currency?.gold ?? 0,
           bubble: parsed.currency?.bubble ?? 0,
         },
+
+        // ✅ CRUCIAL
+        unlockedLevels: parsed.unlockedLevels ?? {},
       };
     } catch {
       // fallback sécurisé si JSON corrompu

@@ -1,21 +1,26 @@
-import { Pressable, Text, StyleSheet, View } from "react-native"
+import { Pressable, Text, StyleSheet } from "react-native"
+import { useState } from "react"
 import { router } from "expo-router"
 import { LinearGradient } from "expo-linear-gradient"
 
 import { progression } from "@/src/meta/progression/ProgressionService"
 import StarsProgress from "./StarsProgress"
 import LockedIcon from "@/assets/gameimg/locked-icon.svg"
+import PurchaseModal from "./PurchaseModal"
 
 export default function LevelItem({ worldId, level }: any) {
+  const [showModal, setShowModal] = useState(false)
+  const [, forceRefresh] = useState(0)
+
+  // --- STATE LOGIC ---
   const isUnlocked = progression.isLevelUnlocked(worldId, level.id)
   const stars = progression.getStars(level.id)
 
   const isCompleted = stars > 0
   const isFullCompleted = stars === 3
 
-  const handlePress = () => {
-    if (!isUnlocked) return
-
+  // --- ACTIONS ---
+  const openLevel = () => {
     router.push({
       pathname: "/play",
       params: {
@@ -25,53 +30,74 @@ export default function LevelItem({ worldId, level }: any) {
     })
   }
 
-  // 🎨 CONTENU
-  const content = (
-    <>
-      {!isUnlocked ? (
-        <LockedIcon width={18} height={18} />
-      ) : (
-        <>
-          <Text style={styles.levelText}>
-            {level.name.replace("Level ", "")}
-          </Text>
-          <StarsProgress stars={stars} maxStars={3} />
-        </>
-      )}
-    </>
-  )
+  const handlePress = () => {
+    if (!isUnlocked) return setShowModal(true)
+    openLevel()
+  }
 
-  // 🌟 FULL COMPLETED → GRADIENT
-  if (isFullCompleted) {
+  const handleBuy = async () => {
+    const success = await progression.unlockLevel(worldId, level.id)
+
+    if (!success) {
+      alert("Not enough gold")
+      return
+    }
+
+    setShowModal(false)
+    forceRefresh(v => v + 1)
+  }
+
+  // --- UI HELPERS ---
+  const renderContent = () => {
+    if (!isUnlocked) {
+      return <LockedIcon width={18} height={18} />
+    }
+
     return (
-      <Pressable onPress={handlePress} style={styles.level}>
-        <LinearGradient
-          colors={["#FFFFAA", "#FFA666"]}
-          style={styles.inner}
-        >
-          {content}
-        </LinearGradient>
-      </Pressable>
+      <>
+        <Text style={styles.levelText}>
+          {level.name.replace("Level ", "")}
+        </Text>
+        <StarsProgress stars={stars} maxStars={3} />
+      </>
     )
   }
 
-  // ✅ COMPLETED / 🔒 LOCKED / ⚪ AVAILABLE
+  const containerStyle = [
+    styles.level,
+    !isUnlocked
+      ? styles.locked
+      : isCompleted
+      ? styles.completed
+      : styles.available,
+  ]
+
+  // --- RENDER ---
   return (
-    <Pressable
-      style={[
-        styles.level,
-        isUnlocked
-          ? isCompleted
-            ? styles.completed
-            : styles.available
-          : styles.locked,
-      ]}
-      onPress={handlePress}
-    >
-      {content}
-    </Pressable>
+    <>
+      <Pressable style={containerStyle} onPress={handlePress}>
+        {isFullCompleted ? (
+          <LinearGradient
+            colors={["#FFFFAA", "#FFA666"]}
+            style={styles.inner}
+          >
+            {renderContent()}
+          </LinearGradient>
+        ) : (
+          renderContent()
+        )}
+      </Pressable>
+
+      <PurchaseModal
+        visible={showModal}
+        price={50}
+        onCancel={() => setShowModal(false)}
+        onConfirm={handleBuy}
+      />
+    </>
   )
 }
+
 
 const styles = StyleSheet.create({
   level: {
@@ -110,5 +136,47 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  modal: {
+    width: 250,
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 12,
+  },
+
+  modalText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  yesBtn: {
+    backgroundColor: "#4CAF50",
+    padding: 10,
+    borderRadius: 8,
+  },
+
+  noBtn: {
+    backgroundColor: "#F44336",
+    padding: 10,
+    borderRadius: 8,
+  },
+
+  btnText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 })

@@ -17,12 +17,48 @@ export class ProgressionService {
     }
   }
 
+  // ✅ GOLD
+  getGold(): number {
+    this.ensureState()
+    return this.state!.currency.gold
+  }
+
+  async spendGold(amount: number): Promise<boolean> {
+    this.ensureState()
+
+    if (this.state!.currency.gold < amount) return false
+
+    this.state!.currency.gold -= amount
+    await ProgressRepository.save(this.state!)
+
+    return true
+  }
+
+  // ✅ UNLOCK MANUEL
+  async unlockLevel(worldId: string, levelId: string): Promise<boolean> {
+    this.ensureState()
+
+    const cost = 50
+
+    const success = await this.spendGold(cost)
+    if (!success) return false
+
+    this.state!.unlockedLevels[levelId] = true
+
+    await ProgressRepository.save(this.state!)
+
+    return true
+  }
+
   // ✅ LEVEL UNLOCK
   isLevelUnlocked(worldId: string, levelId: string): boolean {
     this.ensureState()
 
+    // ✅ unlock manuel prioritaire
+    if (this.state!.unlockedLevels[levelId]) return true
+
     const world = this.repo.getWorldById(worldId)
-    
+
     if (!world) return false
 
     const index = world.levelList.findIndex(l => l.id === levelId)

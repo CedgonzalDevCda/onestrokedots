@@ -1,9 +1,11 @@
 export type PlayerState = {
-  completedLevels: Record<string, number> 
-  // levelId -> stars (0 à 3)
+  completedLevels: Record<string, number>
 
   currency: {
     gold: number
     bubble: number
   }
+
+  // ✅ unlock manuel
+  unlockedLevels: Record<string, boolean>
 }
