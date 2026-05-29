@@ -1,20 +1,33 @@
-import { View, Text, StyleSheet, Dimensions } from "react-native";
-import MoneyIcon from "@/assets/gameimg/money-gold-icon.svg";
+import { View, Text, StyleSheet, Dimensions, Pressable } from "react-native"
 
-const { width } = Dimensions.get("window");
-const BOX_SIZE = width * 0.22;
+const { width } = Dimensions.get("window")
+const BOX_SIZE = width * 0.22
 
-export default function ShopItem({ amount, price }) {
+type ShopItemProps = {
+  amount: number
+  price: string
+  productId: string
+  icon: React.ReactNode
+  onPress?: (productId: string) => void
+}
+
+export default function ShopItem({
+  amount,
+  price,
+  productId,
+  icon,
+  onPress,
+}: ShopItemProps) {
   return (
-    <View style={styles.box}>
+    <Pressable style={styles.box} onPress={() => onPress?.(productId)}>
       <View style={styles.topRow}>
-        <MoneyIcon width={40} height={40} />
-        <Text style={styles.amount}>{amount}</Text>
+        {icon}
+        <Text style={styles.amount}>+{amount}</Text>
       </View>
 
       <Text style={styles.price}>{price}</Text>
-    </View>
-  );
+    </Pressable>
+  )
 }
 
 const styles = StyleSheet.create({
@@ -49,4 +62,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontStyle: "italic",
   },
-});
+})

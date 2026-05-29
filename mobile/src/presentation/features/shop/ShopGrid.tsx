@@ -1,24 +1,42 @@
 import { View, StyleSheet, Dimensions } from "react-native";
 import ShopItem from "./ShopItem";
+import { ShopProduct } from "@/src/application/shop/types";
+
+import GoldIcon from "@/assets/gameimg/money-gold-icon.svg";
+import BubbleIcon from "@/assets/gameimg/money-bubble-icon.svg";
+import LifeIcon from "@/assets/gameimg/money-life-icon.svg";
 
 const { width } = Dimensions.get("window");
-
-// ✅ largeur calculée pour 2 colonnes
 const ITEM_SIZE = width * 0.31;
 
-const DATA = [
-  { amount: "+1", price: "$2.99" },
-  { amount: "+2", price: "$4.99" },
-  { amount: "+5", price: "$9.99" },
-  { amount: "+12", price: "$19.99" },
-];
+type Props = {
+  products: ShopProduct[];
+  onPressItem: (id: string) => void;
+};
 
-export default function ShopGrid() {
+const getIcon = (type: ShopProduct["type"]) => {
+  switch (type) {
+    case "gold":
+      return <GoldIcon width={40} height={40} />;
+    case "bubble":
+      return <BubbleIcon width={40} height={40} />;
+    case "life":
+      return <LifeIcon width={40} height={40} />;
+  }
+};
+
+export default function ShopGrid({ products, onPressItem }: Props) {
   return (
     <View style={styles.grid}>
-      {DATA.map((item, index) => (
-        <View key={index} style={styles.itemWrapper}>
-          <ShopItem amount={item.amount} price={item.price} />
+      {products.map((item) => (
+        <View key={item.id} style={styles.itemWrapper}>
+          <ShopItem
+            amount={item.amount}
+            price={item.price}
+            productId={item.id}
+            icon={getIcon(item.type)}
+            onPress={onPressItem}
+          />
         </View>
       ))}
     </View>
@@ -26,17 +44,16 @@ export default function ShopGrid() {
 }
 
 const styles = StyleSheet.create({
-grid: {
-  marginTop: 210,
-  flexDirection: "row",
-  flexWrap: "wrap",
-  justifyContent: "center",
-  alignSelf: "center", // ✅ clé pour centrage parfait
-},
-
+  grid: {
+    marginTop: 210,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignSelf: "center",
+  },
 
   itemWrapper: {
-    width: ITEM_SIZE, // ✅ force 2 colonnes
+    width: ITEM_SIZE,
     alignItems: "center",
   },
 });
