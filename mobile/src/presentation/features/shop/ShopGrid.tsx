@@ -6,7 +6,7 @@ import GoldIcon from "@/assets/gameimg/money-gold-icon.svg";
 import BubbleIcon from "@/assets/gameimg/money-bubble-icon.svg";
 import LifeIcon from "@/assets/gameimg/money-life-icon.svg";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 const ITEM_SIZE = width * 0.31;
 
 type Props = {
@@ -45,7 +45,7 @@ export default function ShopGrid({ products, onPressItem }: Props) {
 
 const styles = StyleSheet.create({
   grid: {
-    marginTop: 210,
+    marginTop: height * 0.12, // 👈 proportionnel à la hauteur de l'écran
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
