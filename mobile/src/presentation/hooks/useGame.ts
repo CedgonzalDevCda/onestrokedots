@@ -1,6 +1,8 @@
+// src/presentation/hooks/useGame.ts
 import { useState } from "react"
 import { Point } from "@/src/core/models/Point"
-import { Validator } from "@/src/core/engine/Validator"
+import { Validator, ValidationResult } from "@/src/core/engine/Validator"
+import { LevelRuleConfig } from "@/src/core/rules/LevelRuleConfig"
 
 type Vec = { x: number; y: number }
 
@@ -17,13 +19,17 @@ export function useGame(
   points: Point[],
   stars: Star[],
   collectedStars: Record<string, boolean>,
-  setCollectedStars: React.Dispatch<React.SetStateAction<Record<string, boolean>>>
+  setCollectedStars: React.Dispatch<React.SetStateAction<Record<string, boolean>>>,
+  rules?: LevelRuleConfig[]
 ) {
   const [path, setPath] = useState<Vec[]>([])
   const [visited, setVisited] = useState<Record<string, number>>({})
+  const [visitOrder, setVisitOrder] = useState<string[]>([])
+  const [starsOrder, setStarsOrder] = useState<string[]>([])
   const [inside, setInside] = useState<Record<string, boolean>>({})
   const [lastPos, setLastPos] = useState<Vec | null>(null)
   const [lost, setLost] = useState(false)
+  const [lastResult, setLastResult] = useState<ValidationResult | null>(null)
 
   const isPathValid = points.every(p => (visited[p.id] ?? 0) === p.value)
 
@@ -111,6 +117,7 @@ export function useGame(
       const dist = Math.hypot(x - star.x, y - star.y)
       if (dist <= star.size / 2) {
         setCollectedStars(prev => ({ ...prev, [star.id]: true }))
+        setStarsOrder(prev => [...prev, star.id])
       }
     })
   }
@@ -120,21 +127,48 @@ export function useGame(
   function resetAll() {
     setPath([])
     setVisited({})
+    setVisitOrder([])
+    setStarsOrder([])
     setInside({})
     setLastPos(null)
     setLost(false)
     setCollectedStars({})
+    setLastResult(null)
   }
 
   // ---------------- GESTURES ----------------
 
   function handleStart(x: number, y: number) {
     setPath([{ x, y }])
-    setVisited({})
-    setInside({})
-    setLastPos({ x, y })
     setLost(false)
     setCollectedStars({})
+    setLastResult(null)
+    setStarsOrder([])
+
+    // On détecte immédiatement si le doigt est posé
+    // à l'intérieur d'un ou plusieurs points au moment du touch,
+    // pour que StartPointRule (basée sur visitOrder[0]) fonctionne
+    // même si l'utilisateur pose le doigt directement sur le point de départ.
+    const newInside: Record<string, boolean> = {}
+    const newVisited: Record<string, number> = {}
+    const newVisitOrder: string[] = []
+
+    points.forEach(pt => {
+      const dist = Math.hypot(x - pt.x, y - pt.y)
+      const isInside = dist <= pt.radius + EPS
+      newInside[pt.id] = isInside
+
+      if (isInside) {
+        newVisited[pt.id] = 1
+        newVisitOrder.push(pt.id)
+      }
+    })
+
+    setInside(newInside)
+    setVisited(newVisited)
+    setVisitOrder(newVisitOrder)
+    setLastPos({ x, y })
+
     checkStars(x, y)
   }
 
@@ -178,6 +212,14 @@ export function useGame(
 
       if (isNowInside && !wasInside) {
         setVisited(v => ({ ...v, [pt.id]: (v[pt.id] ?? 0) + 1 }))
+
+        // ✅ CORRECTION : on n'empêche plus l'ajout d'un doublon consécutif ici.
+        // Avant, on filtrait "if (prev[prev.length - 1] === pt.id) return prev",
+        // ce qui empêchait TOUJOURS qu'un backtrack (A -> B -> A) apparaisse
+        // dans visitOrder, rendant NoBacktrackRule totalement inopérante
+        // (elle ne recevait jamais de doublon consécutif à détecter).
+        // On enregistre maintenant la vraie transition d'entrée dans le cercle.
+        setVisitOrder(prev => [...prev, pt.id])
       }
 
       setInside(prev => ({ ...prev, [pt.id]: isNowInside }))
@@ -189,26 +231,31 @@ export function useGame(
     return false
   }
 
-  function handleEnd() {
+  function handleEnd(): ValidationResult {
     if (lost) {
       setLost(false)
-      return false
+      const result: ValidationResult = { valid: false, failedRule: "lost" }
+      setLastResult(result)
+      return result
     }
 
-    const valid = Validator.validate(points, visited)
+    const result = Validator.validate(points, visited, visitOrder, rules, starsOrder)
+    setLastResult(result)
 
-    if (!valid) {
+    if (!result.valid) {
       resetAll()
-      return false
     }
 
-    return true
+    return result
   }
 
   return {
     path,
     visited,
+    visitOrder,
+    starsOrder,
     isPathValid,
+    lastResult,
     handleStart,
     handleMove,
     handleEnd,

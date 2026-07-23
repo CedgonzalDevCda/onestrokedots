@@ -12,13 +12,13 @@ export const LevelLoader = {
           id: lvl.id,
           name: lvl.name,
 
-          // ✅ champs ajoutés
           isCompleted: false,
           isAvailable: true,
 
-          // ✅ mapping noms
           PointList: lvl.points,
           StarList: lvl.stars,
+
+          rules: lvl.rules ?? [],
         })),
       },
     ]
