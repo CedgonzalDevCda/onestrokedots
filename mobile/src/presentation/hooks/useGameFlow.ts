@@ -11,6 +11,7 @@ import { useInterstitial } from "@/src/infrastructure/ads/useInterstitial";
 import { useAds } from "@/src/infrastructure/ads/AdProvider";
 
 import { LevelRuleConfig } from "@/src/core/rules/LevelRuleConfig";
+import { getSpecialPointIds } from "@/src/core/rules/getSpecialPointIds";
 
 const DEFAULT_RULES: LevelRuleConfig[] = [
   { type: "visit-count" },
@@ -31,6 +32,10 @@ export function useGameFlow(worldId: string, levelId: string) {
   const rules: LevelRuleConfig[] = level
     ? [...DEFAULT_RULES, ...(level.rules ?? [])]
     : DEFAULT_RULES;
+
+  // Extraction des points spéciaux (start/end) à partir des règles,
+  // pure logique core, réutilisée telle quelle par la couche presentation.
+  const { startPointIds, endPointIds } = getSpecialPointIds(rules);
 
   // -------------------------
   // STATE (toujours appelés, avant tout return)
@@ -175,6 +180,9 @@ export function useGameFlow(worldId: string, levelId: string) {
     showModal,
     starsEarned,
     lastResult: game.lastResult,
+    // règles / points spéciaux (pour la couche UI: PointsLayer)
+    startPointIds,
+    endPointIds,
     // actions
     retry,
     next,

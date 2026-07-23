@@ -1,3 +1,4 @@
+// src/presentation/features/game/GameScreen.tsx
 import { View } from "react-native"
 import { useLocalSearchParams } from "expo-router"
 
@@ -26,6 +27,8 @@ export default function GameScreen() {
     end,
     showModal,
     starsEarned,
+    startPointIds,
+    endPointIds,
     retry,
     next,
     home,
@@ -46,6 +49,8 @@ export default function GameScreen() {
           visited={gameState.visited}
           collectedStars={collectedStars}
           isPathValid={gameState.isPathValid}
+          startPointIds={startPointIds}
+          endPointIds={endPointIds}
         />
       </View>
 

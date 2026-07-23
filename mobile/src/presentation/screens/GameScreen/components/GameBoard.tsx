@@ -1,3 +1,4 @@
+// src/presentation/features/game/components/GameBoard.tsx
 import Svg from "react-native-svg"
 import { StarsLayer } from "./StarsLayer"
 import { PointsLayer } from "./PointsLayer"
@@ -18,9 +19,9 @@ export type GameBoardProps = {
   visited: Record<string, number>
   collectedStars: Record<string, boolean>
   isPathValid: boolean
+  startPointIds?: Set<string>
+  endPointIds?: Set<string>
 }
-
-
 
 export function GameBoard({
   stars,
@@ -29,6 +30,8 @@ export function GameBoard({
   visited,
   collectedStars,
   isPathValid,
+  startPointIds,
+  endPointIds,
 }: GameBoardProps) {
   return (
     <Svg width="100%" height="100%">
@@ -40,7 +43,12 @@ export function GameBoard({
 
       <PathLayer path={path} />
 
-      <PointsLayer points={points} visited={visited} />
+      <PointsLayer
+        points={points}
+        visited={visited}
+        startPointIds={startPointIds}
+        endPointIds={endPointIds}
+      />
     </Svg>
   )
 }

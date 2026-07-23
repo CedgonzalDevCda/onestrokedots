@@ -6,7 +6,7 @@
       "id": "1",
       "name": "Level 1",
       "rules": [
-        { "type": "start-point", "params": { "pointId": "5" } },
+        { "type": "start-point", "params": { "pointId": "8" } },
         { "type": "end-point", "params": { "pointId": "8" } }
       ],
       "points": [
@@ -98,6 +98,9 @@
     {
       "id": "2",
       "name": "Level 2",
+      "rules": [
+        { "type": "end-point", "params": { "pointId": "8" } }
+      ],
       "points": [
         {
           "id": "1",
