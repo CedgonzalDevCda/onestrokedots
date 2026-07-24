@@ -1,0 +1,2343 @@
+{
+  "project": {
+    "type": "mobile game app",
+    "architecture": "clean architecture + feature-based UI",
+    "description": "Puzzle game with worlds, levels, progression, shop, and in-app purchases"
+  },
+  "tech_debt": {
+    "engine_architecture": {
+      "issue": "Game logic is split between useGame (React layer) and GameEngine (core), leading to an inverted architecture",
+      "current_state": {
+        "useGame": "acts as main game engine (state + rules + geometry + validation triggers)",
+        "GameEngine": "only processes segment collisions",
+        "core_engine": "underutilized and not source of truth"
+      },
+      "problems": [
+        "game logic lives in UI layer instead of core",
+        "hard to test gameplay independently from React",
+        "risk of duplicated or inconsistent logic",
+        "misleading naming (GameEngine is not actually the engine)"
+      ],
+      "target_architecture": {
+        "GameEngine": "stateful, single source of truth for game state and rules",
+        "useGame": "thin adapter between UI events and GameEngine",
+        "core": "contains all deterministic gameplay logic"
+      },
+      "planned_actions": [
+        "move path state and logic into GameEngine",
+        "move intersection and collision rules into core",
+        "move star collection logic into core",
+        "introduce a stateful GameEngine (start, move, end, reset)",
+        "simplify useGame to input/output binding"
+      ],
+      "priority": "medium",
+      "risk": "high",
+      "status": "deferred",
+      "tags": [
+        "architecture",
+        "core",
+        "game-engine",
+        "refactor"
+      ]
+    }
+  },
+  "app_runtime": {
+    "root_layout": {
+      "file": "app/_layout.tsx",
+      "responsibilities": [
+        "initialize app (database + progression)",
+        "control splash screen lifecycle",
+        "setup navigation stack",
+        "wrap app with providers (ads, gesture handler)",
+        "configure system UI (status bar, navigation bar)"
+      ],
+      "state": {
+        "ready": "boolean - indicates if app initialization is complete"
+      },
+      "effects": [
+        {
+          "name": "init",
+          "type": "async useEffect (on mount)",
+          "steps": [
+            "prevent splash auto hide",
+            "initialize sqlite database",
+            "initialize progression service",
+            "configure android navigation bar (hidden)",
+            "set ready = true",
+            "hide splash screen (finally)"
+          ],
+          "error_handling": "logs 'Init error' to console"
+        }
+      ],
+      "dependencies": {
+        "navigation": "expo-router (Stack)",
+        "ads": "AdProvider",
+        "database": "initDatabase (sqlite)",
+        "progression": "ProgressionService.init()",
+        "ui": [
+          "GestureHandlerRootView",
+          "StatusBar",
+          "expo-navigation-bar"
+        ],
+        "splash": "expo-splash-screen"
+      },
+      "rendering": {
+        "condition": "returns null until ready === true",
+        "root_wrapper": "GestureHandlerRootView",
+        "providers": [
+          "AdProvider"
+        ],
+        "status_bar": "hidden"
+      }
+    }
+  },
+  "routing": {
+    "root_layout": "app/_layout.tsx",
+    "stack_configuration": {
+      "type": "Stack (expo-router)",
+      "options": {
+        "headerShown": false
+      },
+      "screens": [
+        "(main)/home",
+        "(game)/collections",
+        "(game)/worlds",
+        "(game)/levels/[worldId]",
+        "(game)/play",
+        "(game)/settings"
+      ],
+      "notes": [
+        "possible mismatch: '(game)/collections' vs file 'collection.tsx'"
+      ]
+    },
+    "main_routes": {
+      "home": "app/(main)/home.tsx"
+    },
+    "game_routes": {
+      "collection": "app/(game)/collection.tsx",
+      "play": "app/(game)/play.tsx",
+      "settings": "app/(game)/settings.tsx",
+      "shop": "app/(game)/shop.tsx",
+      "worlds": "app/(game)/worlds.tsx",
+      "levels_by_world": "app/(game)/levels/[worldId].tsx"
+    },
+    "entry_points": [
+      "app/index.tsx",
+      "app/dummy.ts"
+    ]
+  },
+  "tests": {
+    "location": "app/__test__/",
+    "files": [
+      "_layout.test.tsx",
+      "dummy.test.ts",
+      "get-levels.test.ts",
+      "smoke.test.ts"
+    ],
+    "purpose": "basic routing, smoke tests, and level retrieval validation"
+  },
+  "core_game": {
+    "importance": "critical",
+    "path": "src/core/",
+    "modules": {
+      "engine": [
+        "CollisionEngine.ts",
+        "GameEngine.ts",
+        "PathEngine.ts",
+        "Validator.ts"
+      ],
+      "engine_detail": {
+        "GameEngine": {
+          "file": "src/core/engine/GameEngine.ts",
+          "role": "lightweight helper for segment processing (not a full game engine)",
+          "description": "Processes a movement segment and updates visited points based on collision detection",
+          "methods": {
+            "processSegment": {
+              "inputs": [
+                "x1, y1 - segment start",
+                "x2, y2 - segment end",
+                "points - list of level points",
+                "visited - current visit counts"
+              ],
+              "output": "updated visited Record<string, number>",
+              "behavior": [
+                "calls CollisionEngine.detectSegmentHit",
+                "if a point is hit → increment its visit count",
+                "if no hit → return visited unchanged"
+              ]
+            }
+          },
+          "dependencies": [
+            "CollisionEngine",
+            "Point model"
+          ],
+          "limitations": [
+            "does not manage full path",
+            "no game state",
+            "no validation logic",
+            "no win/lose conditions",
+            "stateless function"
+          ]
+        }
+      },
+      "collision": {
+        "CollisionEngine": {
+          "file": "src/core/engine/CollisionEngine.ts",
+          "role": "low-level geometric collision detection engine",
+          "description": "Provides utility methods to detect interactions between user input (points or segments) and game points (circles)",
+          "methods": {
+            "isPointTouched": {
+              "description": "Checks if a finger position is inside a point radius",
+              "inputs": [
+                "fingerX",
+                "fingerY",
+                "point"
+              ],
+              "output": "boolean"
+            },
+            "detectTouchedPoint": {
+              "description": "Returns the first point touched by the finger",
+              "inputs": [
+                "fingerX",
+                "fingerY",
+                "points[]"
+              ],
+              "output": "Point | null",
+              "limitation": "returns first match, not necessarily closest"
+            },
+            "segmentIntersectsCircle": {
+              "description": "Checks if a segment intersects a circle using quadratic equation",
+              "inputs": [
+                "x1",
+                "y1",
+                "x2",
+                "y2",
+                "point"
+              ],
+              "output": "boolean"
+            },
+            "detectSegmentHit": {
+              "description": "Returns the first point intersected by a segment",
+              "inputs": [
+                "x1",
+                "y1",
+                "x2",
+                "y2",
+                "points[]"
+              ],
+              "output": "Point | null",
+              "limitation": "does not guarantee nearest collision point"
+            }
+          },
+          "characteristics": [
+            "pure functions (no side effects)",
+            "deterministic for given input order",
+            "stateless"
+          ],
+          "limitations": [
+            "no ordering of collisions (closest vs farthest)",
+            "returns first match based on array order",
+            "no support for multiple simultaneous collisions",
+            "no collision metadata (distance, impact point, t value)"
+          ],
+          "used_by": [
+            "GameEngine",
+            "useGame"
+          ]
+        }
+      },
+      "validation": {
+        "Validator": {
+          "file": "src/core/engine/Validator.ts",
+          "role": "basic completion validator (checks visit counts only)",
+          "description": "Validates that each point has been visited the exact required number of times",
+          "method": {
+            "validate": {
+              "inputs": [
+                "points: Point[]",
+                "visited: Record<string, number>"
+              ],
+              "output": "boolean",
+              "logic": "returns true only if visited count equals required value for every point"
+            }
+          },
+          "rules_checked": [
+            "each point must be visited exactly point.value times"
+          ],
+          "limitations": [
+            "does not validate path shape",
+            "does not detect intersections",
+            "does not handle game state (win/lose)",
+            "does not validate star collection",
+            "no partial validation (only full success/fail)"
+          ],
+          "characteristics": [
+            "pure function",
+            "deterministic",
+            "stateless"
+          ],
+          "used_by": [
+            "useGame (handleEnd)"
+          ],
+          "architecture_note": "This is not a full game validator. It only checks completion and should be extended or replaced by a full GameEngine validation layer."
+        }
+      },
+      "path_engine": {
+        "PathEngine": {
+          "file": "src/core/engine/PathEngine.ts",
+          "role": "handles player input and path construction",
+          "description": "Tracks finger movement, builds the path, and updates visited points based on collisions",
+          "state": {
+            "points": "Point[]",
+            "visited": "Record<string, number>",
+            "path": "FingerPosition[]",
+            "lastPosition": "FingerPosition | null"
+          },
+          "methods": {
+            "onFingerStart": {
+              "description": "initializes path and detects first point touch"
+            },
+            "onFingerMove": {
+              "description": "adds new position and detects collisions with points"
+            },
+            "onFingerEnd": {
+              "description": "returns path and visited state"
+            }
+          },
+          "dependencies": [
+            "CollisionEngine"
+          ],
+          "current_limitations": [
+            "can register multiple visits for same point without movement",
+            "uses point detection instead of segment detection",
+            "no prevention of repeated collisions",
+            "no validation logic (delegated elsewhere)",
+            "no game state (win/lose)"
+          ],
+          "architecture_note": "This class acts as a partial GameEngine but lacks full rule enforcement and validation."
+        }
+      }
+    },
+    "generation": [
+      "GraphGenerator.ts",
+      "LevelGenerator.ts",
+      "PathBuilder.ts",
+      "SolverValidator.ts",
+      "ValueAssigner.ts"
+    ],
+    "generation_details": {
+      "GraphGenerator": {
+        "file": "src/core/generation/GraphGenerator.ts",
+        "role": "generates a grid-based graph structure for levels",
+        "description": "Creates points arranged in a grid with optional jitter and connects them via edges",
+        "input": {
+          "rows": "number",
+          "cols": "number",
+          "spacing": "number",
+          "jitter": "number (optional)"
+        },
+        "output": {
+          "points": "Point[]",
+          "edges": "Edge[]"
+        },
+        "generation_logic": [
+          "creates a grid of points",
+          "applies random jitter to positions",
+          "connects each point to right and bottom neighbors"
+        ],
+        "characteristics": [
+          "simple deterministic grid structure (without jitter)",
+          "lightweight",
+          "easy to control layout"
+        ],
+        "limitations": [
+          "no gameplay data (point values all set to 0)",
+          "edges are not used by the game engine",
+          "non-deterministic when jitter is enabled",
+          "no difficulty scaling",
+          "no guarantee of solvability"
+        ],
+        "used_by": [
+          "LevelGenerator"
+        ],
+        "architecture_note": "This generator only creates the spatial structure. Gameplay logic (values, solution paths) must be added by other systems like ValueAssigner or SolverValidator."
+      }
+    },
+    "level_generation": {
+      "LevelGenerator": {
+        "file": "src/core/generation/LevelGenerator.ts",
+        "role": "orchestrates full level generation pipeline",
+        "description": "Generates a complete playable level by combining graph creation, solution building, validation, and gameplay assignment",
+        "pipeline": [
+          "GraphGenerator.generate",
+          "PathBuilder.build",
+          "SolverValidator.validate",
+          "ValueAssigner.assign",
+          "generateStars"
+        ],
+        "input": {
+          "rows": "number",
+          "cols": "number",
+          "spacing": "number",
+          "pathLength": "number"
+        },
+        "output": {
+          "id": "string",
+          "points": "Point[]",
+          "edges": "Edge[]",
+          "stars": "Star[]",
+          "solution": "string[]"
+        },
+        "generation_strategy": {
+          "type": "retry-based",
+          "max_attempts": 50,
+          "validation_required": true
+        },
+        "strengths": [
+          "modular pipeline",
+          "clear separation of concerns",
+          "robust retry mechanism",
+          "extensible design"
+        ],
+        "limitations": [
+          "non-deterministic level id (Date.now)",
+          "hardcoded jitter value",
+          "stars are trivially assigned to solution path",
+          "silent error handling in catch block",
+          "implicit coupling between generation modules"
+        ],
+        "architecture_note": "Acts as the central orchestrator of procedural generation. Future improvements include seed-based generation, richer star mechanics, and stronger contracts between modules."
+      }
+    },
+    "PathBuilder": {
+      "file": "src/core/generation/PathBuilder.ts",
+      "role": "builds a valid traversal path within a graph",
+      "description": "Generates a simple path of a given length by performing a random walk on the graph without revisiting nodes",
+      "input": {
+        "graph": "Graph",
+        "targetLength": "number"
+      },
+      "output": {
+        "path": "string[] (ordered list of point ids)"
+      },
+      "algorithm": {
+        "type": "random walk with retry",
+        "max_attempts": 100,
+        "constraints": [
+          "no node revisiting",
+          "must reach exact target length"
+        ]
+      },
+      "generation_steps": [
+        "select random starting point",
+        "iteratively pick an unvisited neighbor",
+        "stop when no candidates or target length reached",
+        "retry until valid path is found"
+      ],
+      "dependencies": [
+        "Graph (points + edges)"
+      ],
+      "strengths": [
+        "simple and fast",
+        "guarantees valid paths (no cycles)",
+        "easy to reason about",
+        "works well with grid graphs"
+      ],
+      "limitations": [
+        "purely random (no control over path shape)",
+        "no difficulty control",
+        "can generate trivial or uninteresting paths",
+        "high retry rate for longer paths",
+        "no heuristics to avoid dead-ends",
+        "non-deterministic (uses Math.random)"
+      ],
+      "design_note": "This builder ensures structural validity but not gameplay quality. It should be enhanced or complemented by heuristics or post-processing to produce more interesting puzzles."
+    },
+    "SolverValidator": {
+      "file": "src/core/generation/SolverValidator.ts",
+      "role": "validates structural correctness of a generated solution path",
+      "description": "Ensures that a generated path respects graph connectivity and visit constraints, without evaluating gameplay rules or puzzle quality",
+      "input": {
+        "graph": "Graph",
+        "solution": "string[]",
+        "rules": {
+          "maxVisits": "number (default: 1)"
+        }
+      },
+      "output": {
+        "isValid": "boolean"
+      },
+      "checks": [
+        "each step moves along a valid edge",
+        "each node is visited at most maxVisits times"
+      ],
+      "dependencies": [
+        "Graph (edges)"
+      ],
+      "strengths": [
+        "fast and deterministic",
+        "ensures basic path validity",
+        "extensible rule structure",
+        "prevents invalid graph traversal"
+      ],
+      "limitations": [
+        "does not validate puzzle rules",
+        "does not check intersections",
+        "does not validate stars",
+        "does not ensure uniqueness of solution",
+        "does not evaluate difficulty",
+        "not a true solver"
+      ],
+      "design_note": "Despite its name, this module does not solve puzzles or validate gameplay correctness. It should be considered a structural validator and may need to be complemented by a real solver for advanced generation."
+    },
+    "ValueAssigner": {
+      "file": "src/core/generation/ValueAssigner.ts",
+      "role": "derives node values from the generated solution path",
+      "description": "Assigns values to each point based on how many times it is visited in the generated solution, ensuring consistency between generation and validation",
+      "input": {
+        "points": "Point[]",
+        "solution": "string[]"
+      },
+      "output": {
+        "points": "Point[] (with value assigned)"
+      },
+      "algorithm": {
+        "type": "solution projection",
+        "steps": [
+          "count occurrences of each point in the solution path",
+          "assign visit count to corresponding points",
+          "assign 0 to non-visited points"
+        ]
+      },
+      "dependencies": [
+        "solution path from PathBuilder"
+      ],
+      "strengths": [
+        "deterministic and consistent",
+        "guarantees solvability",
+        "simple and fast",
+        "no desync between solution and puzzle"
+      ],
+      "limitations": [
+        "directly exposes solution structure",
+        "no ambiguity for the player",
+        "does not generate challenge",
+        "strongly tied to PathBuilder behavior",
+        "cannot control difficulty"
+      ],
+      "design_note": "This module belongs to generation because it derives puzzle data directly from the known solution. However, it currently acts as a direct projection rather than a transformation, which limits gameplay depth."
+    },
+    "models": {
+      "Level": {
+        "file": "src/core/models/Level.ts",
+        "role": "represents a playable puzzle level",
+        "description": "A level contains a graph of points and optional stars used for objectives or rewards",
+        "fields": {
+          "id": "string",
+          "name": "string",
+          "points": "Point[]",
+          "stars": "Star[]"
+        },
+        "notes": [
+          "Level should remain pure and not include progression state",
+          "Gameplay rules should not be hardcoded here but derived from constraints or generation"
+        ]
+      },
+      "Point": {
+        "file": "src/core/models/Point.ts",
+        "role": "node in the puzzle graph",
+        "description": "Represents a position in the level that can hold gameplay information",
+        "fields": {
+          "id": "string",
+          "x": "number",
+          "y": "number",
+          "radius": "number",
+          "value": "number | null (optional)"
+        },
+        "notes": [
+          "value represents gameplay information derived from the solution",
+          "value can be hidden (null) to introduce uncertainty",
+          "future evolution may replace value with a richer typed structure"
+        ]
+      },
+      "Star": {
+        "file": "src/core/models/Star.ts",
+        "role": "optional collectible or objective element",
+        "description": "Represents a reward or constraint element, typically linked to a point in the graph",
+        "fields": {
+          "id": "string",
+          "pointId": "string"
+        },
+        "notes": [
+          "Stars should be linked to points instead of raw coordinates when tied to gameplay",
+          "Can be used for optional objectives or constraints"
+        ]
+      },
+      "World": {
+        "file": "src/core/models/World.ts",
+        "role": "groups levels into a progression unit",
+        "description": "Represents a collection of levels forming a world",
+        "fields": {
+          "id": "string",
+          "name": "string",
+          "levels": "Level[]"
+        }
+      }
+    },
+    "systems": [
+      "HintSystem.ts"
+    ],
+    "rules": "rules/core-engine-rules.MD"
+  },
+  "application_layer": {
+    "purpose": "use cases orchestration",
+    "modules": {
+      "level": {
+        "GetLevels": {
+          "file": "src/application/level/GetLevels.ts",
+          "type": "query",
+          "description": "Fetches levels for a given world and enriches them with completion status based on player progression",
+          "inputs": {
+            "worldId": "string"
+          },
+          "outputs": {
+            "LevelWithProgress[]": "list of levels with isCompleted flag"
+          },
+          "types": {
+            "LevelWithProgress": {
+              "extends": "Level",
+              "fields": {
+                "isCompleted": "boolean"
+              }
+            }
+          },
+          "flow": [
+            "call levelRepository.getLevelsByWorld(worldId)",
+            "call ProgressRepository.get()",
+            "merge results to compute isCompleted for each level"
+          ],
+          "rules": [
+            "isCompleted = true if progress.completedLevels[level.id] > 0",
+            "default to false if level not found in progress"
+          ],
+          "dependencies": [
+            "levelRepository",
+            "ProgressRepository",
+            "Level model"
+          ],
+          "async": {
+            "strategy": "Promise.all",
+            "reason": "parallelize data fetching for performance"
+          },
+          "edge_cases": [
+            "no levels returned → empty array",
+            "missing progress entry → treated as not completed",
+            "undefined completedLevels → should be guarded upstream"
+          ],
+          "test_cases": [
+            "returns levels with correct isCompleted=true when progress exists",
+            "returns isCompleted=false when no progress",
+            "handles empty levels array",
+            "handles empty progress object"
+          ],
+          "architecture_notes": [
+            "pure function (no side effects except data fetching)",
+            "independent from UI layer",
+            "aggregates multiple repositories into a single view model"
+          ]
+        }
+      },
+      "progression": {
+        "CompleteLevel": {
+          "file": "src/application/progression/CompleteLevel.ts",
+          "type": "command",
+          "description": "Updates player progression when a level is completed, storing the best score and granting rewards",
+          "inputs": {
+            "levelId": "string - identifier of the completed level",
+            "stars": "number - stars earned during the run"
+          },
+          "outputs": {
+            "PlayerState": "updated player progression state"
+          },
+          "flow": [
+            "retrieve current player state from ProgressRepository",
+            "read existing stars for the level",
+            "compare new stars with existing score",
+            "if new score is higher: update completedLevels[levelId]",
+            "grant reward based on stars earned",
+            "persist updated state via ProgressRepository.save",
+            "return updated state"
+          ],
+          "rules": [
+            "only the best score (max stars) is kept",
+            "no update occurs if new stars <= currentStars",
+            "reward is granted only when improving score",
+            "reward formula: stars * 10 gold"
+          ],
+          "state_mutations": {
+            "completedLevels": "updates levelId entry with new star count",
+            "currency.gold": "increased based on reward formula"
+          },
+          "dependencies": [
+            "ProgressRepository",
+            "PlayerState model"
+          ],
+          "edge_cases": [
+            "level not yet completed → defaults to 0 stars",
+            "same or lower score → no reward, no overwrite",
+            "missing completedLevels map → potential crash if not initialized upstream"
+          ],
+          "test_cases": [
+            "updates level when new stars > existing",
+            "does not update when stars <= existing",
+            "correctly increments gold when improved",
+            "does not increment gold when not improved",
+            "handles new level with no prior progress"
+          ],
+          "architecture_notes": [
+            "command use case (modifies state)",
+            "contains business rules for progression and rewards",
+            "should remain independent from UI",
+            "could be extended with achievements, unlocks, or analytics hooks"
+          ]
+        }
+      }
+    }
+  },
+  "meta_layer": {
+    "purpose": "product logic outside core gameplay",
+    "modules": {
+      "progression": {
+        "playerState": {
+          "file": "PlayerState.ts",
+          "type": "domain state",
+          "description": "Represents the player's progression and currency",
+          "structure": {
+            "completedLevels": "Record<levelId, stars>",
+            "currency": {
+              "gold": "number",
+              "bubble": "number"
+            }
+          }
+        },
+        "progressionService": {
+          "file": "ProgressionService.ts",
+          "type": "application service",
+          "description": "Handles progression, rewards, and persistence",
+          "core_methods": [
+            "init",
+            "isLevelUnlocked",
+            "isLevelCompleted",
+            "getStars",
+            "completeLevel",
+            "isWorldUnlocked",
+            "getWorldCompletion",
+            "addBubbles",
+            "spendBubbles",
+            "getBubbles",
+            "getState"
+          ],
+          "dependencies": [
+            "LevelRepository",
+            "ProgressRepository (static)"
+          ],
+          "rules": [
+            "first level of a world is always unlocked",
+            "a level is unlocked if previous level is completed",
+            "a world is unlocked if previous world is fully completed",
+            "stars overwrite only if higher than previous",
+            "gold reward = stars * 10"
+          ],
+          "issues": [
+            {
+              "type": "architecture",
+              "description": "ProgressRepository is used as a static dependency instead of being injected",
+              "impact": "tight coupling to infrastructure, harder to test and evolve",
+              "target": "inject ProgressRepository via constructor"
+            },
+            {
+              "type": "separation-of-concerns",
+              "description": "ProgressionService handles both progression logic and economy (currency)",
+              "impact": "blurs domain boundaries and makes future evolution harder",
+              "target": "extract currency logic into a dedicated EconomyService"
+            }
+          ],
+          "refactor_plan": {
+            "priority": "medium",
+            "risk": "medium",
+            "status": "deferred",
+            "steps": [
+              "inject ProgressRepository instead of static usage",
+              "introduce EconomyService",
+              "move currency logic out of ProgressionService",
+              "split PlayerState into ProgressState and EconomyState"
+            ],
+            "tags": [
+              "architecture",
+              "refactor",
+              "meta-layer",
+              "progression"
+            ]
+          }
+        }
+      },
+      "economy": {
+        "status": "not_implemented",
+        "planned": true,
+        "description": "Will handle all currency-related logic (gold, bubbles) currently inside ProgressionService",
+        "todo": [
+          {
+            "task": "create EconomyService",
+            "description": "centralize all currency operations (earn, spend, balance)",
+            "details": [
+              "addGold(amount)",
+              "spendGold(amount)",
+              "addBubbles(amount)",
+              "spendBubbles(amount)",
+              "getBalances()"
+            ]
+          },
+          {
+            "task": "extract currency logic from ProgressionService",
+            "description": "remove all currency mutations from progression and delegate to EconomyService"
+          },
+          {
+            "task": "separate state",
+            "description": "split PlayerState into ProgressState and EconomyState"
+          },
+          {
+            "task": "create EconomyRepository",
+            "description": "handle persistence of currency independently from progression"
+          },
+          {
+            "task": "inject dependencies",
+            "description": "inject EconomyService into ProgressionService instead of handling currency directly"
+          },
+          {
+            "task": "define economy rules",
+            "description": "formalize reward system and spending constraints",
+            "examples": [
+              "gold reward per star",
+              "level completion bonuses",
+              "cost of hints or retries",
+              "soft vs hard currency rules"
+            ]
+          }
+        ]
+      },
+      "purchase": {
+        "interface": {
+          "name": "IPurchaseService",
+          "methods": [
+            {
+              "name": "purchaseNoAds",
+              "returns": "Promise<void>",
+              "description": "Triggers the purchase flow for the no-ads product"
+            },
+            {
+              "name": "restorePurchases",
+              "returns": "Promise<boolean>",
+              "description": "Restores previous purchases and returns whether no-ads is owned"
+            }
+          ],
+          "role": "abstracts in-app purchase provider (e.g. RevenueCat)"
+        },
+        "current_implementation": {
+          "name": "RevenueCatPurchaseService",
+          "provider": "RevenueCat",
+          "responsibilities": [
+            "fetch offerings",
+            "trigger purchase flow",
+            "restore purchases",
+            "check entitlement (no ads)"
+          ]
+        },
+        "limitations": [
+          {
+            "type": "scalability",
+            "description": "interface is tightly coupled to a single product (no ads)",
+            "impact": "hard to extend to multiple products (coins, bundles, subscriptions)"
+          }
+        ],
+        "refactor_plan": {
+          "priority": "medium",
+          "status": "planned",
+          "target_design": {
+            "goal": "support multiple purchasable products in a generic way",
+            "proposal": "replace specific methods with generic purchase API"
+          },
+          "steps": [
+            "introduce ProductId type (e.g. 'no_ads', 'coins_pack_1', etc.)",
+            "replace purchaseNoAds() with purchase(productId)",
+            "replace boolean return with entitlement map or product ownership check",
+            "add method getAvailableProducts()",
+            "add method hasEntitlement(productId)"
+          ]
+        },
+        "target_interface": {
+          "name": "IPurchaseService",
+          "methods": [
+            {
+              "name": "purchase",
+              "signature": "(productId: string) => Promise<void>"
+            },
+            {
+              "name": "restorePurchases",
+              "signature": "() => Promise<void>"
+            },
+            {
+              "name": "hasEntitlement",
+              "signature": "(productId: string) => Promise<boolean>"
+            },
+            {
+              "name": "getAvailableProducts",
+              "signature": "() => Promise<Product[]>"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "data": {
+    "levels": [
+      "src/data/levels/world1.json",
+      "src/data/levels/world2.json",
+      "src/data/levels/world3.json"
+    ]
+  },
+  "infrastructure": {
+    "purpose": "technical implementations",
+    "modules": {
+      "ads": {
+        "overview": "AdMob integration with safe initialization, rate limiting, and environment-based ad units",
+        "components": {
+          "AdProvider": {
+            "file": "src/infrastructure/ads/AdProvider.tsx",
+            "type": "context provider",
+            "responsibilities": [
+              "initialize AdMob SDK safely (with timeout fallback)",
+              "expose global ad state (adMode, adsReady)",
+              "control ad loading frequency (rate limiting)",
+              "provide canLoadAd() guard to prevent spam requests"
+            ],
+            "state": {
+              "adMode": "normal | high | no_ads",
+              "adsReady": "boolean - true when SDK initialized",
+              "lastLoad": "timestamp of last ad load"
+            },
+            "rules": [
+              "ads cannot load before SDK initialization",
+              "minimum delay between loads: 30s",
+              "initialization is executed only once (singleton)"
+            ]
+          },
+          "AdBanner": {
+            "file": "src/infrastructure/ads/AdBanner.tsx",
+            "type": "UI component",
+            "responsibilities": [
+              "display banner ads based on placement",
+              "handle delayed first load (2s safety)",
+              "auto-refresh ads using controlled timing",
+              "prevent layout shift using placeholder"
+            ],
+            "inputs": {
+              "placement": "key of adUnits.banner"
+            },
+            "dependencies": [
+              "useAds (AdProvider context)",
+              "adUnits",
+              "adConfig"
+            ],
+            "rules": [
+              "do not render if adMode = no_ads",
+              "do not load if canLoadAd() returns false",
+              "refresh controlled via refreshKey (not setInterval)",
+              "fallback placeholder shown before first load"
+            ],
+            "platform_logic": [
+              "selects iOS/Android unitId dynamically"
+            ]
+          },
+          "useInterstitial": {
+            "file": "src/infrastructure/ads/useInterstitial.ts",
+            "type": "hook",
+            "responsibilities": [
+              "load interstitial ad on mount",
+              "track loading state",
+              "show ad when ready",
+              "auto-reload after close"
+            ],
+            "rules": [
+              "ad must be created after mount (avoid native crash)",
+              "reload automatically after closing",
+              "show only if loaded"
+            ]
+          },
+          "adUnits": {
+            "file": "src/infrastructure/ads/adUnits.ts",
+            "type": "configuration",
+            "responsibilities": [
+              "store all ad unit IDs (banner + interstitial)",
+              "switch between test and production IDs",
+              "ensure safe dev environment"
+            ],
+            "rules": [
+              "test ads used in dev or unsafe environments",
+              "production requires valid IDs (no 'XXX')",
+              "platform-specific mapping (iOS/Android)"
+            ],
+            "placements": {
+              "banner": [
+                "home",
+                "world_list",
+                "world_levels",
+                "gameOver"
+              ],
+              "interstitial": [
+                "end_level"
+              ]
+            }
+          },
+          "adConfig": {
+            "file": "src/infrastructure/ads/adConfig.ts",
+            "type": "configuration",
+            "values": {
+              "banner.refreshInterval": "45000 ms",
+              "banner.minLoadInterval": "30000 ms"
+            }
+          },
+          "initAdsSafe": {
+            "file": "src/infrastructure/ads/initAdsSafe.ts",
+            "type": "utility",
+            "responsibilities": [
+              "initialize AdMob manually if needed",
+              "prevent multiple initializations",
+              "fail safely without crashing"
+            ]
+          }
+        },
+        "architecture_notes": [
+          "fully isolated from gameplay and domain logic",
+          "controlled via provider pattern (global state)",
+          "designed to avoid crashes, spam, and policy violations",
+          "environment-aware (dev vs production)"
+        ],
+        "tech_debt": [
+          "adMode not yet connected to purchase system (remove_ads)",
+          "no analytics on ad impressions/clicks",
+          "no mediation or advanced targeting",
+          "interstitial placement logic still manual (not tied to gameplay events)",
+          "no centralized ad manager (logic split across hooks/components)"
+        ]
+      },
+      "iap": {
+        "overview": "RevenueCat-based in-app purchase system with paywall UI and entitlement management",
+        "components": {
+          "PaywallService": {
+            "file": "src/infrastructure/iap/PaywallService.ts",
+            "type": "service",
+            "responsibilities": [
+              "display RevenueCat paywall UI",
+              "handle user interaction result",
+              "normalize paywall outcome into boolean success/failure"
+            ],
+            "method": {
+              "presentPaywall": {
+                "returns": "boolean",
+                "true_when": [
+                  "purchase completed",
+                  "purchase restored"
+                ],
+                "false_when": [
+                  "user cancelled",
+                  "error occurred",
+                  "paywall not presented"
+                ]
+              }
+            },
+            "dependencies": [
+              "react-native-purchases-ui"
+            ],
+            "error_handling": [
+              "catch and log errors",
+              "fail gracefully returning false"
+            ],
+            "architecture_notes": [
+              "pure infrastructure wrapper",
+              "UI-driven (external SDK handles rendering)",
+              "no business logic inside"
+            ]
+          },
+          "RevenueCatPurchaseService": {
+            "file": "src/infrastructure/iap/RevenueCatPurchaseService.ts",
+            "type": "service",
+            "implements": "IPurchaseService",
+            "responsibilities": [
+              "handle purchase flow via RevenueCat",
+              "restore previous purchases",
+              "check active entitlements (no_ads)"
+            ],
+            "methods": {
+              "purchaseNoAds": {
+                "flow": [
+                  "fetch offerings from RevenueCat",
+                  "select current offering package",
+                  "trigger purchase"
+                ],
+                "errors": [
+                  "throws if no package available"
+                ]
+              },
+              "restorePurchases": {
+                "returns": "boolean",
+                "flow": [
+                  "call restorePurchases",
+                  "check entitlement active state"
+                ]
+              },
+              "hasPurchasedNoAds": {
+                "returns": "boolean",
+                "flow": [
+                  "fetch customer info",
+                  "check entitlement"
+                ],
+                "error_handling": [
+                  "returns false if API fails"
+                ]
+              }
+            },
+            "entitlement": {
+              "id": "OneStrokeDotsNoPub",
+              "meaning": "removes ads when active"
+            },
+            "dependencies": [
+              "react-native-purchases",
+              "IPurchaseService (domain interface)"
+            ],
+            "architecture_notes": [
+              "clean separation via interface (IPurchaseService)",
+              "fully replaceable (e.g., mock, Stripe, etc.)",
+              "no UI logic inside"
+            ]
+          }
+        },
+        "integration_points": [
+          "connected to AdProvider via adMode = no_ads",
+          "used by UI (shop / paywall trigger)",
+          "should update PlayerState or global state after purchase"
+        ],
+        "tech_debt": [
+          "no synchronization with PlayerState (ads still enabled unless manually handled)",
+          "no caching of purchase state (calls RevenueCat each time)",
+          "no retry/backoff strategy on network failure",
+          "no analytics tracking (conversion, paywall views)",
+          "package selection is naive (always first available)",
+          "no support for multiple products (only no_ads)"
+        ]
+      },
+      "persistence": {
+        "sqlite": {
+          "db": {
+            "file": "src/infrastructure/persistence/sqlite/db.ts",
+            "type": "database adapter",
+            "description": "Lightweight async wrapper around expo-sqlite with singleton connection",
+            "responsibilities": [
+              "initialize SQLite database lazily (on first use)",
+              "provide generic query execution helpers",
+              "abstract low-level SQLite API",
+              "ensure single shared database instance"
+            ],
+            "internal": {
+              "database": "singleton instance (SQLiteDatabase | null)",
+              "getDb": "opens database 'game.db' once and reuses it"
+            },
+            "methods": {
+              "run": {
+                "signature": "run(query: string, params?: SQLiteValue[])",
+                "description": "execute INSERT / UPDATE / DELETE queries",
+                "returns": "execution result from expo-sqlite"
+              },
+              "get": {
+                "signature": "get<T>(query: string, params?: SQLiteValue[])",
+                "description": "fetch a single row",
+                "returns": "T | null"
+              },
+              "getAll": {
+                "signature": "getAll<T>(query: string, params?: SQLiteValue[])",
+                "description": "fetch multiple rows",
+                "returns": "T[]"
+              }
+            },
+            "types": {
+              "SQLiteValue": "string | number | null"
+            },
+            "usage_examples": [
+              "repository layer (ProgressRepository, LevelRepository)",
+              "database initialization (initDatabase.ts)",
+              "migrations (migration.ts)"
+            ],
+            "rules": [
+              "database connection must not be recreated multiple times",
+              "all queries must go through this adapter",
+              "parameters must be passed separately (prevent SQL injection)"
+            ],
+            "error_handling": [
+              "no internal try/catch → errors propagate to caller",
+              "callers (repositories) should handle failures"
+            ],
+            "architecture_notes": [
+              "pure infrastructure layer (no business logic)",
+              "acts as a gateway between app and SQLite",
+              "keeps repositories clean and testable",
+              "easily replaceable (e.g., with Realm or async storage)"
+            ],
+            "edge_cases": [
+              "concurrent calls during first initialization (potential race condition)",
+              "database corruption not handled",
+              "no transaction helper (multi-query atomicity missing)"
+            ],
+            "tech_debt": [
+              "no transaction support (BEGIN / COMMIT / ROLLBACK wrapper missing)",
+              "no query logging/debug mode",
+              "no migration/version enforcement at this level",
+              "no connection closing strategy",
+              "no performance optimizations (batching, prepared statements)"
+            ]
+          },
+          "initDatabase": {
+            "file": "src/infrastructure/persistence/sqlite/initDatabase.ts",
+            "type": "initialization + migration entry point",
+            "description": "Bootstraps database schema and applies versioned migrations",
+            "responsibilities": [
+              "create core tables if they do not exist",
+              "track database version via meta table",
+              "apply incremental migrations safely",
+              "ensure schema consistency at app startup"
+            ],
+            "flow": [
+              "create 'meta' table if not exists",
+              "read current db_version from meta",
+              "default version = 0 if not found",
+              "apply migrations based on version",
+              "update db_version after migration"
+            ],
+            "schema": {
+              "meta": {
+                "columns": {
+                  "key": "TEXT PRIMARY KEY",
+                  "value": "TEXT"
+                },
+                "purpose": "store internal configuration (e.g., db_version)"
+              },
+              "progress": {
+                "columns": {
+                  "id": "TEXT PRIMARY KEY",
+                  "data": "TEXT (serialized JSON)"
+                },
+                "purpose": "store player progression state"
+              }
+            },
+            "versioning": {
+              "current_version": 1,
+              "strategy": "incremental migrations using conditional checks",
+              "example": [
+                "if version < 1 → create progress table",
+                "future: if version < 2 → alter/add tables"
+              ]
+            },
+            "rules": [
+              "must be called once at app startup (root layout)",
+              "must run before any repository access",
+              "db_version must always reflect latest applied migration"
+            ],
+            "dependencies": [
+              "db adapter (db.ts)"
+            ],
+            "error_handling": [
+              "no internal try/catch → errors bubble to app initializer",
+              "caller logs 'Init error' (as defined in root layout)"
+            ],
+            "architecture_notes": [
+              "simple manual migration system (no external ORM)",
+              "fully controlled and predictable",
+              "fits small-to-mid scale apps",
+              "keeps persistence layer framework-agnostic"
+            ],
+            "edge_cases": [
+              "no transaction wrapping → partial migration risk if crash occurs",
+              "concurrent init calls could duplicate work (rare but possible)",
+              "string-based version storage requires parsing (Number(value))"
+            ],
+            "tech_debt": [
+              "no transaction support (BEGIN/COMMIT/ROLLBACK)",
+              "no migration files separation",
+              "no logging system",
+              "no validation of schema consistency",
+              "no down migrations",
+              "db.get used without await causing TypeScript error (TS2339) and runtime bug where currentVersion is always 0"
+            ],
+            "recommended_improvements": [
+              "wrap migrations in a transaction (BEGIN / COMMIT)",
+              "extract migrations into separate files (migration.ts)",
+              "add version constants (avoid magic numbers)",
+              "add logging for migration steps",
+              "consider splitting progress into structured tables if querying is needed"
+            ]
+          },
+          "migrations": {
+            "file": "src/infrastructure/persistence/sqlite/migrations.ts",
+            "type": "migration system",
+            "description": "Versioned migration system using _migrations table to track applied schema changes",
+            "responsibilities": [
+              "create migration tracking table",
+              "determine current database version",
+              "apply incremental migrations",
+              "persist applied migration versions"
+            ],
+            "flow": [
+              "create _migrations table if not exists",
+              "fetch MAX(version) from _migrations",
+              "default version = 0 if no row",
+              "apply each migration conditionally (if currentVersion < N)",
+              "insert version after each successful migration"
+            ],
+            "schema": {
+              "_migrations": {
+                "columns": {
+                  "version": "INTEGER PRIMARY KEY"
+                },
+                "purpose": "track applied migrations"
+              }
+            },
+            "migrations": {
+              "v1": {
+                "description": "create progress table",
+                "queries": [
+                  "CREATE TABLE progress (id TEXT PRIMARY KEY NOT NULL, data TEXT NOT NULL)"
+                ]
+              },
+              "v2": {
+                "description": "reserved for future changes (example: add updatedAt column)",
+                "queries": []
+              }
+            },
+            "dependencies": [
+              "db adapter (db.ts)"
+            ],
+            "rules": [
+              "must be executed at app startup",
+              "must be awaited (async execution)",
+              "each migration must be idempotent",
+              "version must be inserted only after success"
+            ],
+            "error_handling": [
+              "no internal try/catch → errors bubble up",
+              "should be wrapped in transaction for safety"
+            ],
+            "architecture_notes": [
+              "replaces meta-based versioning system",
+              "closer to industry standards (incremental migrations)",
+              "scalable for future schema evolution",
+              "keeps infrastructure independent from business logic"
+            ],
+            "edge_cases": [
+              "missing await can cause repeated migrations",
+              "no transaction → partial migration risk",
+              "concurrent execution could duplicate inserts",
+              "no rollback mechanism"
+            ],
+            "tech_debt": [
+              "no transaction support (BEGIN/COMMIT/ROLLBACK)",
+              "no migration files separation",
+              "no logging system",
+              "no validation of schema consistency",
+              "no down migrations"
+            ],
+            "recommended_improvements": [
+              "wrap migrations in SQL transaction",
+              "split migrations into versioned files",
+              "add logging for each step",
+              "prevent concurrent execution",
+              "add migration registry system"
+            ]
+          }
+        }
+      }
+    },
+    "repositories": {
+      "levelRepository": {
+        "file": "src/infrastructure/repositories/LevelRepository.ts",
+        "type": "in-memory repository",
+        "description": "Provides access to worlds and levels loaded from static JSON data",
+        "data_source": "LevelLoader (local JSON)",
+        "responsibilities": [
+          "load worlds at initialization",
+          "expose read-only access to worlds and levels",
+          "provide navigation between levels (next, first)",
+          "abstract data source from domain logic"
+        ],
+        "methods": [
+          "getWorlds",
+          "getWorldById",
+          "getLevelsByWorld",
+          "getLevel",
+          "getNextLevel",
+          "getFirstLevel"
+        ],
+        "characteristics": [
+          "synchronous",
+          "in-memory storage",
+          "no persistence",
+          "deterministic and fast access"
+        ],
+        "dependencies": [
+          "LevelLoader",
+          "World model",
+          "Level model"
+        ],
+        "edge_cases": [
+          "returns null if world or level not found",
+          "getNextLevel returns null if last level",
+          "no validation of duplicated IDs"
+        ],
+        "architecture_notes": [
+          "acts as read model",
+          "decouples domain from JSON structure",
+          "can be replaced by remote API without impacting domain"
+        ]
+      },
+      "progressRepository": {
+        "file": "src/infrastructure/repositories/ProgressRepository.ts",
+        "type": "sqlite repository",
+        "description": "Handles persistence of player progression state using SQLite",
+        "storage": "SQLite (progress table)",
+        "responsibilities": [
+          "persist player progression",
+          "retrieve current player state",
+          "initialize default state if none exists",
+          "handle corrupted data fallback"
+        ],
+        "methods": [
+          "get",
+          "save",
+          "reset"
+        ],
+        "schema": {
+          "table": "progress",
+          "columns": {
+            "id": "TEXT PRIMARY KEY",
+            "data": "TEXT (JSON serialized PlayerState)"
+          }
+        },
+        "data_model": {
+          "PlayerState": {
+            "completedLevels": "Record<string, boolean>",
+            "currency": {
+              "gold": "number",
+              "bubble": "number"
+            }
+          }
+        },
+        "characteristics": [
+          "asynchronous",
+          "JSON-based storage",
+          "single row (id = 'main')",
+          "simple key-value persistence pattern"
+        ],
+        "error_handling": [
+          "creates default state if no row exists",
+          "resets to default if JSON is corrupted"
+        ],
+        "dependencies": [
+          "db adapter (sqlite)",
+          "PlayerState model"
+        ],
+        "edge_cases": [
+          "JSON corruption handled with full reset",
+          "no partial recovery of data",
+          "single save key limits multi-profile support"
+        ],
+        "tech_debt": [
+          "no schema validation for stored JSON",
+          "no migration strategy for PlayerState evolution",
+          "single slot storage (no multi-user support)",
+          "full overwrite on save (no partial updates)",
+          "no encryption of persisted data"
+        ],
+        "architecture_notes": [
+          "acts as persistence gateway for progression",
+          "isolates SQLite from domain logic",
+          "could evolve into event-based or normalized storage",
+          "currently optimized for simplicity over scalability"
+        ]
+      }
+    },
+    "sources": {
+      "local": {
+        "json": {
+          "levelLoader": {
+            "file": "src/infrastructure/sources/local/json/LevelLoader.ts",
+            "type": "static data loader",
+            "description": "Loads and maps level data from local JSON files into domain models",
+            "input": "world1.json (static level design data)",
+            "output": "World[] (domain models)",
+            "responsibilities": [
+              "import raw JSON level data",
+              "map JSON structure to domain models (World, Level)",
+              "initialize default gameplay state fields",
+              "normalize property names between data and domain"
+            ],
+            "mapping": {
+              "lvl.points → Level.PointList": "renamed for domain consistency",
+              "lvl.stars → Level.StarList": "renamed for domain consistency",
+              "isCompleted": "default false (not persisted here)",
+              "isAvailable": "default true (no progression lock yet)"
+            },
+            "characteristics": [
+              "synchronous",
+              "static import (bundled with app)",
+              "no runtime fetching",
+              "deterministic"
+            ],
+            "limitations": [
+              "only loads world1.json (no multi-world support yet)",
+              "no dynamic loading",
+              "no validation of JSON structure",
+              "uses 'any' type for level mapping (unsafe typing)"
+            ],
+            "dependencies": [
+              "World model",
+              "Level model",
+              "local JSON files"
+            ],
+            "edge_cases": [
+              "invalid JSON structure can crash mapping",
+              "missing fields are not validated",
+              "no fallback if data is malformed"
+            ],
+            "tech_debt": [
+              "hardcoded single world import",
+              "no runtime validation (zod/io-ts missing)",
+              "uses 'any' instead of strict typing",
+              "mixes static data with gameplay state (isCompleted, isAvailable)",
+              "no separation between content and progression"
+            ],
+            "recommended_improvements": [
+              "support multiple world files (world1, world2, world3)",
+              "introduce schema validation (zod)",
+              "remove gameplay state from loader (move to ProgressionService)",
+              "strongly type JSON structure",
+              "allow async loading for future remote support"
+            ],
+            "architecture_notes": [
+              "acts as anti-corruption layer between raw data and domain",
+              "prepares future migration to remote data source",
+              "currently tightly coupled to file structure"
+            ]
+          }
+        },
+        "sqlite": {
+          "progressLoader": {
+            "file": "src/infrastructure/sources/local/sqlite/ProgressLoader.ts",
+            "type": "local persistence loader",
+            "description": "Loads and maps player progression data from SQLite into domain models",
+            "input": "SQLite (progress table)",
+            "output": "Player progression state (completed levels, unlocked levels, etc.)",
+            "responsibilities": [
+              "read player progression from SQLite",
+              "map database rows to domain state",
+              "provide default state if no data exists",
+              "ensure data consistency"
+            ],
+            "characteristics": [
+              "asynchronous",
+              "persistent",
+              "device storage",
+              "mutable data"
+            ],
+            "dependencies": [
+              "SQLite database",
+              "progress table schema"
+            ],
+            "edge_cases": [
+              "no existing data (first launch)",
+              "corrupted or partial data",
+              "schema mismatch after update"
+            ],
+            "tech_debt": [
+              "no validation layer",
+              "no migration handling at this level",
+              "tight coupling to schema"
+            ],
+            "architecture_notes": [
+              "complements LevelLoader by providing dynamic player state",
+              "should be merged with domain via ProgressionService",
+              "acts as data source, not business logic holder"
+            ]
+          }
+        }
+      },
+      "remote": {
+        "levelApi": {
+          "type": "REST API (planned)",
+          "description": "Future remote source for fetching worlds and levels",
+          "responsibilities": [
+            "fetch worlds and levels from backend",
+            "replace local JSON source",
+            "enable live content updates"
+          ],
+          "status": "not implemented",
+          "planned_endpoints": [
+            "GET /worlds",
+            "GET /worlds/:id/levels"
+          ]
+        },
+        "progressApi": {
+          "type": "REST API (planned)",
+          "description": "Future remote persistence for player progression (cloud save)",
+          "responsibilities": [
+            "sync player progression",
+            "enable multi-device support",
+            "backup player data"
+          ],
+          "status": "not implemented",
+          "planned_endpoints": [
+            "GET /progress",
+            "POST /progress"
+          ]
+        }
+      }
+    },
+    "presentation": {
+      "purpose": "UI and user interaction",
+      "global_wrappers": [
+        "GestureHandlerRootView",
+        "AdProvider"
+      ],
+      "screens_detail": {
+        "start_page": {
+          "file": "app/index.tsx",
+          "name": "StartPage",
+          "responsibilities": [
+            "display intro splash animation",
+            "handle entry into the game",
+            "display animated call-to-action",
+            "open menu panel",
+            "navigate to home screen"
+          ],
+          "state": {
+            "isIntroVisible": "boolean - controls intro overlay visibility",
+            "isScrolling": "boolean - indicates if panel content is scrolling",
+            "canDrag": "boolean - enables/disables sliding panel drag"
+          },
+          "refs": {
+            "panelRef": "SlidingPanelHandle - controls panel expansion",
+            "touchOpacity": "Animated.Value - opacity for 'touch to start' text",
+            "introOpacity": "Animated.Value - opacity for intro overlay"
+          },
+          "effects": [
+            {
+              "name": "onMount",
+              "actions": [
+                "start looping touch opacity animation",
+                "start intro fade-out sequence after delay"
+              ]
+            }
+          ],
+          "animations": [
+            {
+              "name": "touchOpacityLoop",
+              "type": "loop",
+              "sequence": [
+                "opacity 0.5 -> 1 (800ms)",
+                "opacity 1 -> 0.5 (800ms)"
+              ]
+            },
+            {
+              "name": "introFadeOut",
+              "type": "timing",
+              "delay": 2500,
+              "duration": 1000,
+              "effect": "fade out intro overlay, then hide it"
+            }
+          ],
+          "handlers": {
+            "handleStart": "navigate to '/(main)/home' using router.replace",
+            "openMenu": "expand sliding panel via ref",
+            "startTouchAnimation": "starts looping opacity animation",
+            "startIntroSequence": "triggers delayed fade-out animation"
+          },
+          "navigation": {
+            "type": "replace",
+            "target": "/(main)/home"
+          },
+          "components_used": [
+            "LinearGradient",
+            "Pressable",
+            "Animated",
+            "SlidingPanel",
+            "AppMenuPanelContent",
+            "LogoGame (SVG)"
+          ],
+          "child_components": {
+            "SlidingPanel": {
+              "props": [
+                "isScrollActive",
+                "canDrag"
+              ],
+              "controlled_by": [
+                "isScrolling",
+                "canDrag"
+              ]
+            },
+            "AppMenuPanelContent": {
+              "props": [
+                "clientId",
+                "setIsScrolling",
+                "setCanDrag"
+              ],
+              "interaction": "controls parent panel behavior (scroll + drag)"
+            }
+          },
+          "ui_elements": [
+            "header with version and clientId",
+            "burger menu button",
+            "game logo",
+            "animated 'touch to start' text",
+            "intro overlay with fade-out"
+          ],
+          "constants": {
+            "version": "v1.0.0",
+            "clientId": "12345"
+          }
+        }
+      },
+      "features": {
+        "menu": {
+          "ui": {
+            "component": "AppMenuPanelContent.tsx",
+            "entry_point": "burger button (after splashscreen + intro)",
+            "container": "SlidingPanel",
+            "description": "Side panel menu displaying informational and legal content",
+            "behaviors": [
+              "opens from burger button",
+              "switch between menu list and markdown content",
+              "scrollable content inside panel",
+              "disable panel drag while scrolling"
+            ]
+          },
+          "content": {
+            "type": "static",
+            "format": "markdown",
+            "source": "local typescript modules",
+            "structure": {
+              "example": "assets/content/account.ts",
+              "pattern": "export default string (markdown template literal)"
+            },
+            "renderer": "react-native-markdown-display",
+            "example": {
+              "file": "account.ts",
+              "content_preview": "# Compte → sections (Création de compte, etc.)"
+            },
+            "characteristics": [
+              "embedded content (bundled with app)",
+              "no remote fetch",
+              "fast rendering",
+              "easy to update via app release"
+            ]
+          },
+          "state": {
+            "local": [
+              "selected item (null = menu, item = content view)"
+            ],
+            "external": [
+              "setIsScrolling",
+              "setCanDrag"
+            ]
+          },
+          "role": {
+            "type": "informational",
+            "description": "Provides legal information, support and company details to the user"
+          },
+          "limitations": [
+            {
+              "type": "hardcoded_content",
+              "description": "menu items are defined directly in component",
+              "impact": "not easily reusable or configurable"
+            }
+          ],
+          "refactor_plan": {
+            "priority": "low",
+            "steps": [
+              "extract items into menu.config.ts",
+              "separate UI from data (content definition)",
+              "optionally introduce i18n support for labels"
+            ]
+          }
+        },
+        "shop": {
+          "description": "UI layer for in-game shop including currency display, product listing, and filtering",
+          "components": {
+            "CurrencyBar.tsx": {
+              "role": "display player currencies (gold, bubble)",
+              "dependencies": [
+                "meta/progression/ProgressionService",
+                "assets/gameimg/*.svg"
+              ],
+              "data_flow": "read-only from progression.getState()",
+              "notes": [
+                "not reactive (no subscription to state updates)",
+                "should ideally use a hook (useGame/useProgression)"
+              ]
+            },
+            "CurrencyToggle.tsx": {
+              "role": "UI selector to switch between currency types",
+              "state": "local (useState)",
+              "outputs": [
+                "onChange(currency)"
+              ],
+              "notes": [
+                "pure UI component",
+                "no business logic"
+              ]
+            },
+            "ShopGrid.tsx": {
+              "role": "display list of purchasable items",
+              "dependencies": [
+                "ShopItem.tsx"
+              ],
+              "data_source": "static mock data (hardcoded)",
+              "layout": "2-column responsive grid",
+              "notes": [
+                "should be connected to real IAP/products later"
+              ]
+            },
+            "ShopItem.tsx": {
+              "role": "display single purchasable item",
+              "props": [
+                "amount",
+                "price"
+              ],
+              "dependencies": [
+                "assets/gameimg/money-gold-icon.svg"
+              ],
+              "notes": [
+                "pure presentational component"
+              ]
+            },
+            "ShopHeader.tsx": {
+              "role": "top navigation bar for shop screen",
+              "props": [
+                "onBack"
+              ],
+              "dependencies": [
+                "@expo/vector-icons"
+              ],
+              "notes": [
+                "stateless UI",
+                "handles navigation trigger only"
+              ]
+            }
+          }
+        }
+      },
+      "hooks": [
+        "useGame.ts",
+        "useGameFlow.ts",
+        "useIAP.ts",
+        "useLevelNavigation.ts",
+        "useLevelsWithProgress.ts"
+      ],
+      "hooks_detail": {
+        "useGame": {
+          "file": "src/presentation/hooks/useGame.ts",
+          "role": "current main game engine (runs gameplay logic in React layer)",
+          "architecture_note": "This hook currently acts as the real game engine. It contains game state, rules, and runtime logic that ideally belong to the core engine layer.",
+          "description": "Handles player input, path drawing, collision detection, validation triggers, and star collection",
+          "warnings": [
+            "Contains core gameplay logic that should be moved to GameEngine"
+          ],
+          "inputs": {
+            "points": "Point[]",
+            "stars": "Star[]",
+            "collectedStars": "Record<string, boolean>",
+            "setCollectedStars": "React state setter"
+          },
+          "state": {
+            "path": "Vec[]",
+            "visited": "Record<string, number>",
+            "inside": "Record<string, boolean>",
+            "lastPos": "Vec | null",
+            "lost": "boolean"
+          },
+          "derived_state": {
+            "isPathValid": "all points visited exactly required times"
+          },
+          "game_flow": {
+            "handleStart": "initialize game state and start path",
+            "handleMove": "update path, detect intersections, update visits, collect stars",
+            "handleEnd": "validate path using Validator",
+            "resetAll": "reset full game state"
+          },
+          "rules": [
+            "no self intersection outside circles",
+            "points must be visited exact number of times",
+            "stars collectible only when path is valid",
+            "invalid move resets game"
+          ],
+          "dependencies": [
+            "Point model",
+            "Validator",
+            "React state"
+          ]
+        },
+        "useGameFlow": {
+          "file": "src/presentation/hooks/useGameFlow.ts",
+          "role": "orchestration layer between UI and game engine",
+          "description": "Manages level lifecycle, UI state, navigation, ads, and progression",
+          "inputs": {
+            "worldId": "string",
+            "levelId": "string"
+          },
+          "state": {
+            "collectedStars": "Record<string, boolean>",
+            "showModal": "boolean"
+          },
+          "derived_state": {
+            "starsEarned": "number of collected stars"
+          },
+          "responsibilities": [
+            "fetch level data",
+            "connect game engine (useGame)",
+            "handle user input events",
+            "manage end game logic",
+            "trigger ads",
+            "handle navigation (next, retry, home)",
+            "persist progression"
+          ],
+          "dependencies": [
+            "useGame",
+            "useLevelNavigation",
+            "ProgressionService",
+            "AdProvider",
+            "useInterstitial",
+            "expo-router"
+          ]
+        },
+        "useIAP": {
+          "file": "src/presentation/hooks/useIAP.ts",
+          "role": "in-app purchase orchestration hook (handles UI state + RevenueCat bridge)",
+          "architecture_note": "This hook mixes SDK initialization, business logic, and UI state. Purchase logic should ideally be fully delegated to a domain/service layer.",
+          "description": "Handles in-app purchases (no-ads), purchase state, restoration, and entitlement sync using RevenueCat",
+          "warnings": [
+            "RevenueCat SDK is initialized inside the hook (should be moved to app bootstrap)",
+            "Business logic (entitlement check) is partially handled in UI layer",
+            "Hardcoded API keys (security risk and environment coupling)",
+            "Service is instantiated on each hook call (should be singleton or injected)"
+          ],
+          "todo": [
+            "Move Purchases.configure to app startup (App.tsx or provider)",
+            "Inject RevenueCatPurchaseService via context or dependency injection",
+            "Externalize API keys into env/config",
+            "Separate purchase logic into domain use-case (e.g. PurchaseNoAdsUseCase)",
+            "Add proper error handling and typed error states",
+            "Handle loading state for initial entitlement check",
+            "Add listener for real-time purchase updates (RevenueCat customer info listener)"
+          ],
+          "tech_debt": [
+            "Tight coupling to RevenueCat SDK",
+            "No caching strategy for entitlement state",
+            "Silent failure on init hides potential issues",
+            "No distinction between network error / user cancel / store error",
+            "State machine is too simplistic for real-world IAP flows"
+          ],
+          "inputs": {},
+          "state": {
+            "state": "\"idle\" | \"loading\" | \"error\" | \"success\"",
+            "isPro": "boolean"
+          },
+          "derived_state": {
+            "none": "isPro acts as the main derived entitlement state"
+          },
+          "game_flow": {
+            "init": "configure Purchases SDK and check existing entitlement",
+            "purchaseNoAds": "trigger purchase and revalidate entitlement",
+            "restorePurchases": "restore previous purchases",
+            "refreshPurchases": "manually re-check entitlement"
+          },
+          "rules": [
+            "user is considered pro only if entitlement check returns true",
+            "purchase must be verified after transaction",
+            "restore must reflect actual entitlement state",
+            "UI state reflects purchase lifecycle"
+          ],
+          "dependencies": [
+            "react-native-purchases (RevenueCat SDK)",
+            "RevenueCatPurchaseService",
+            "React state",
+            "Platform (iOS / Android switch)"
+          ]
+        },
+        "useLevelNavigation": {
+          "file": "src/presentation/hooks/useLevelNavigation.ts",
+          "role": "navigation helper hook for level retrieval",
+          "architecture_note": "This hook is a thin wrapper around the repository. It does not add real logic and could be replaced by direct repository access or a domain-level use case.",
+          "description": "Provides helper functions to retrieve a level and its next level from the LevelRepository",
+          "warnings": [
+            "Adds minimal abstraction over repository (low value layer)",
+            "No memoization or caching",
+            "No error handling if level is undefined",
+            "Tightly coupled to LevelRepository implementation"
+          ],
+          "todo": [
+            "Consider replacing with domain use-case (e.g. GetLevelUseCase, GetNextLevelUseCase)",
+            "Add null safety handling (fallback or error boundary)",
+            "Introduce typing for returned Level",
+            "Optionally memoize results if used frequently",
+            "Inject repository instead of importing directly"
+          ],
+          "tech_debt": [
+            "Unnecessary abstraction layer",
+            "No separation between domain and infrastructure",
+            "Direct dependency on concrete repository instead of interface",
+            "Not scalable if logic grows (e.g. locked levels, conditions)"
+          ],
+          "inputs": {
+            "worldId": "string",
+            "levelId": "string"
+          },
+          "state": {},
+          "derived_state": {},
+          "game_flow": {
+            "getLevel": "fetch level data from repository",
+            "getNextLevel": "fetch next level based on progression order"
+          },
+          "rules": [
+            "level retrieval is delegated entirely to repository",
+            "no transformation or validation is applied",
+            "next level depends on repository ordering logic"
+          ],
+          "dependencies": [
+            "LevelRepository (infrastructure layer)"
+          ]
+        },
+        "useLevelsWithProgress": {
+          "file": "src/presentation/hooks/useLevelsWithProgress.ts",
+          "role": "data-fetching hook for levels enriched with player progression",
+          "architecture_note": "This hook correctly delegates business logic to an application use-case (GetLevels), acting as a bridge between UI and domain.",
+          "description": "Fetches levels for a given world and enriches them with progression data (completion, stars, etc.) via the GetLevels use-case",
+          "warnings": [
+            "Manual async state management (could lead to duplication across hooks)",
+            "No caching or persistence (refetch on every mount)",
+            "Error is untyped and not normalized",
+            "Potential race conditions if worldId changes quickly"
+          ],
+          "todo": [
+            "Introduce a data-fetching library (React Query / TanStack Query) for caching and deduplication",
+            "Type the error state (domain-level error model)",
+            "Add retry strategy on failure",
+            "Add stale data handling (avoid UI flicker)",
+            "Consider moving isMounted logic to AbortController or library abstraction",
+            "Support pagination or large datasets if needed"
+          ],
+          "tech_debt": [
+            "Reimplements basic async state pattern (loading/error/data)",
+            "No shared cache between screens",
+            "Imperative effect-based fetching instead of declarative data layer",
+            "Tight coupling to GetLevels function instead of injected use-case"
+          ],
+          "inputs": {
+            "worldId": "string"
+          },
+          "state": {
+            "levels": "LevelWithProgress[]",
+            "loading": "boolean",
+            "error": "unknown"
+          },
+          "derived_state": {
+            "hasData": "levels.length > 0",
+            "isEmpty": "!loading && levels.length === 0"
+          },
+          "game_flow": {
+            "onMountOrWorldChange": "trigger fetch via GetLevels use-case",
+            "onSuccess": "store enriched levels in state",
+            "onError": "store error",
+            "onFinally": "stop loading state"
+          },
+          "rules": [
+            "levels must always come from domain use-case (not directly from repository)",
+            "UI should rely on loading/error/data states",
+            "state updates must not occur after unmount",
+            "worldId change triggers full reload"
+          ],
+          "dependencies": [
+            "GetLevels (application layer use-case)",
+            "React state and lifecycle"
+          ]
+        }
+      },
+      "screens": {
+        "game": "GameScreen/",
+        "home": "HomeScreen/",
+        "others": [
+          "LevelSelect.tsx",
+          "SettingsScreen.tsx",
+          "ShopScreen.tsx",
+          "WorldSelect.tsx"
+        ]
+      },
+      "screens_details": {
+        "GameScreen": {
+          "file": "src/presentation/screens/GameScreen/GameScreen.tsx",
+          "role": "main gameplay screen rendering the game and handling user interactions",
+          "architecture_note": "This screen is well-structured: it delegates business logic to useGameFlow and focuses on rendering and UI wiring.",
+          "description": "Displays the game board, handles touch interactions, shows ads, and manages end-of-level modal",
+          "warnings": [
+            "Touch handling is directly bound to View (could become hard to scale or debug)",
+            "AdBanner is always rendered (no check for isPro / no-ads users)",
+            "Casting params (as string) without validation can lead to runtime issues",
+            "GameScreen assumes flow is always synchronous and available"
+          ],
+          "todo": [
+            "Guard AdBanner with isPro (disable ads for premium users)",
+            "Add loading / fallback UI instead of returning null",
+            "Validate route params more safely (schema or helper)",
+            "Extract touch handling into a dedicated hook (e.g. useTouchControls)",
+            "Split layout into smaller components if screen grows",
+            "Add performance optimizations if GameBoard becomes heavy (memo, etc.)"
+          ],
+          "tech_debt": [
+            "Implicit dependency on useGameFlow structure",
+            "No error boundary if flow fails",
+            "UI tightly coupled to gameState shape",
+            "No suspense/loading state handling"
+          ],
+          "inputs": {
+            "worldId": "string (route param)",
+            "levelId": "string (route param)"
+          },
+          "state": {},
+          "derived_state": {
+            "flow": "aggregated game state and actions from useGameFlow"
+          },
+          "game_flow": {
+            "onMount": "retrieve params and initialize game flow",
+            "onTouchStart": "start path interaction",
+            "onTouchMove": "update path",
+            "onTouchEnd": "finalize move",
+            "onEndGame": "show modal with results",
+            "onRetry": "restart level",
+            "onNext": "navigate to next level",
+            "onHome": "navigate back to home"
+          },
+          "rules": [
+            "screen renders only if params and flow are valid",
+            "GameBoard reflects current gameState",
+            "EndGameModal visibility controlled by flow",
+            "touch events drive gameplay interactions"
+          ],
+          "dependencies": [
+            "useGameFlow (core gameplay logic)",
+            "expo-router (navigation params)",
+            "GameBoard (rendering)",
+            "EndGameModal (UI feedback)",
+            "AdBanner (monetization)",
+            "React Native View system"
+          ],
+          "components": {
+            "GameBoard": {
+              "file": "src/presentation/screens/GameScreen/components/GameBoard.tsx",
+              "role": "Visual container of the game board (SVG)",
+              "responsibilities": [
+                "Compose visual layers (stars, path, points)",
+                "Receive already-processed data from the game flow",
+                "Contain no business logic"
+              ],
+              "props": {
+                "stars": "Star[] (core)",
+                "points": "Point[] (core)",
+                "path": "PathPoint[] (presentation)",
+                "visited": "Record<string, number>",
+                "collectedStars": "Record<string, boolean>",
+                "isPathValid": "boolean"
+              },
+              "dependencies": [
+                "StarsLayer",
+                "PathLayer",
+                "PointsLayer"
+              ]
+            },
+            "PathPoint": {
+              "file": "GameBoard.tsx (local or GameScreen.types.ts)",
+              "layer": "presentation",
+              "description": "Point used only for rendering the path (screen coordinates)",
+              "type": {
+                "x": "number",
+                "y": "number"
+              }
+            },
+            "StarsLayer": {
+              "file": "components/StarsLayer.tsx",
+              "role": "Render stars",
+              "responsibilities": [
+                "Display non-collected stars",
+                "Switch icon depending on path validity"
+              ],
+              "props": {
+                "stars": "Star[]",
+                "collectedStars": "Record<string, boolean>",
+                "isPathValid": "boolean"
+              }
+            },
+            "PointsLayer": {
+              "file": "components/PointsLayer.tsx",
+              "role": "Render graph nodes",
+              "responsibilities": [
+                "Display circles",
+                "Display remaining value",
+                "Handle visual state (valid / incomplete / overflow)"
+              ],
+              "props": {
+                "points": "Point[]",
+                "visited": "Record<string, number>"
+              }
+            },
+            "PathLayer": {
+              "file": "components/PathLayer.tsx",
+              "role": "Render user path",
+              "responsibilities": [
+                "Draw the polyline of the user path"
+              ],
+              "props": {
+                "path": "PathPoint[]"
+              }
+            },
+            "Star": {
+              "file": "src/core/models/Star.ts",
+              "layer": "core",
+              "description": "Domain entity representing a star"
+            },
+            "Point": {
+              "file": "src/core/models/Point.ts",
+              "layer": "core",
+              "description": "Domain entity representing a graph node"
+            }
+          }
+        },
+        "HomeScreen": {
+          "file": "src/presentation/screens/HomeScreen/HomeScreen.tsx",
+          "role": "Main entry screen of the app",
+          "responsibilities": [
+            "Initialize background animation",
+            "Handle navigation to main sections",
+            "Compose UI sections (header, content, actions)"
+          ],
+          "dependencies": [
+            "expo-router (navigation)",
+            "react-native-reanimated (animation)",
+            "expo-linear-gradient (background)",
+            "HomeHeader",
+            "HomeTitle",
+            "HomeLogo",
+            "HomeButtons",
+            "NoAdsButton"
+          ],
+          "state": {
+            "progress": "SharedValue<number> used for looping animation"
+          },
+          "navigation": {
+            "onPlay": "/worlds",
+            "onCollection": "/collections"
+          },
+          "components": {
+            "HomeHeader": {
+              "file": "src/presentation/screens/HomeScreen/components/HomeHeader.tsx",
+              "role": "Top overlay section",
+              "responsibilities": [
+                "Display header UI (profile, settings, currency, etc.)",
+                "Handle top-level actions",
+                "Stay fixed at the top of the screen"
+              ]
+            },
+            "HomeTitle": {
+              "file": "src/presentation/screens/HomeScreen/components/HomeTitle.tsx",
+              "role": "Animated game title",
+              "responsibilities": [
+                "Render the main title",
+                "Animate based on shared progress value"
+              ],
+              "props": {
+                "progress": "SharedValue<number>"
+              }
+            },
+            "HomeLogo": {
+              "file": "src/presentation/screens/HomeScreen/components/HomeLogo.tsx",
+              "role": "Animated logo",
+              "responsibilities": [
+                "Render the game logo",
+                "Animate using shared animation progress"
+              ],
+              "props": {
+                "progress": "SharedValue<number>"
+              }
+            },
+            "HomeButtons": {
+              "file": "src/presentation/screens/HomeScreen/components/HomeButtons.tsx",
+              "role": "Main navigation actions",
+              "responsibilities": [
+                "Trigger navigation to main sections",
+                "Expose primary CTA actions (Play, Collection)"
+              ],
+              "props": {
+                "onPlay": "() => void",
+                "onCollection": "() => void"
+              }
+            },
+            "NoAdsButton": {
+              "file": "src/presentation/screens/HomeScreen/components/NoAdsButton.tsx",
+              "role": "Monetization CTA",
+              "responsibilities": [
+                "Display remove-ads purchase button",
+                "Position itself independently from main layout (absolute)"
+              ]
+            }
+          }
+        },
+        "LevelSelect": {},
+        "SettingsScreen": {},
+        "ShopScreen": {},
+        "WorldSelect": {}
+      },
+      "ui": [
+        "GameHeader.tsx",
+        "SlidingPanel.tsx"
+      ]
+    },
+    "assets": {
+      "content_markdown": [
+        "account.ts",
+        "company.ts",
+        "contact.ts",
+        "privacy.ts",
+        "terms.ts"
+      ],
+      "images": "assets/images/",
+      "game_images": "assets/gameimg/"
+    },
+    "shared": {
+      "types": [
+        "markdown.d.ts",
+        "svg.d.ts"
+      ],
+      "utils": []
+    },
+    "config": [
+      "app.json",
+      "babelconfig.js",
+      "eslint.config.js",
+      "metro.config.js",
+      "package.json",
+      "tsconfig.json"
+    ]
+  }
+}

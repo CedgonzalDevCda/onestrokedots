@@ -1,4 +1,4 @@
-import WorldSelect from "@/src/ui/WorldSelect";
+import WorldSelect from "@/src/presentation/screens/WorldSelect/WorldSelect";
 
 export default function Worlds() {
   return <WorldSelect />;
