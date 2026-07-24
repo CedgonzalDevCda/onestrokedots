@@ -24,6 +24,25 @@ export type LevelRuleConfig =
   | { type: "start-point"; params: StartPointParams }
   | { type: "end-point"; params: EndPointParams }
   | { type: "min-stars"; params: MinStarsParams }
-  | { type: "ordered-stars"; params: unknown }
-  | { type: "avoid-zone"; params: unknown }
-  | { type: "color-match"; params: unknown }
+  | { type: "ordered-stars"; params: OrderedStarsParams }
+  | { type: "avoid-zone"; params: AvoidZoneParams }
+  | { type: "color-match" }
+
+export type LevelRuleType = LevelRuleConfig["type"]
+
+// -------------------------
+// RULE TYPE GROUPS
+// -------------------------
+export const DEFAULT_RULE_TYPES: Set<LevelRuleType> = new Set([
+  "visit-count",
+  "no-backtrack",
+])
+
+export const ADDITIONNAL_RULE_TYPES: Set<LevelRuleType> = new Set([
+  "start-point",
+  "end-point",
+  "min-stars",
+  "ordered-stars",
+  "avoid-zone",
+  "color-match",
+])
