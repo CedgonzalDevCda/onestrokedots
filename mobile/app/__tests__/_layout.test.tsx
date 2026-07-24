@@ -26,77 +26,182 @@ jest.mock("expo-navigation-bar", () => ({
   setVisibilityAsync: jest.fn(),
 }));
 
-// ✅ MOCK ADS
-jest.mock("react-native-google-mobile-ads", () => ({
-  __esModule: true,
-  default: () => ({
-    initialize: jest.fn(),
-  }),
-  MobileAds: {
-    initialize: jest.fn(),
-  },
-}));
-
-// ✅ ✅ FIX IMPORTANT ICI
-jest.mock("react-native-gesture-handler", () => {
-  const React = require("react");
-  const { View } = require("react-native");
-
-  return {
-    GestureHandlerRootView: ({ children, ...props }: any) => (
-      <View {...props}>{children}</View>
-    ),
-    GestureDetector: ({ children }: any) => <>{children}</>,
-  };
-});
-
-// ✅ MOCK STATUS BAR
 jest.mock("expo-status-bar", () => ({
   StatusBar: () => null,
 }));
 
-// ✅ MOCKS ASYNC
-const mockInitDatabase = jest.fn().mockResolvedValue(undefined);
+jest.mock("react-native-gesture-handler", () => {
+  const { View } = require("react-native");
+  return {
+    GestureHandlerRootView: ({ children, style }: any) => (
+      <View style={style}>{children}</View>
+    ),
+  };
+});
 
-jest.mock("@/src/data/sources/local/sqlite/initDatabase", () => ({
-  initDatabase: () => mockInitDatabase(),
+jest.mock("react-native-safe-area-context", () => {
+  const { View } = require("react-native");
+  return {
+    SafeAreaProvider: ({ children }: any) => <View>{children}</View>,
+    SafeAreaView: ({ children, style }: any) => (
+      <View style={style}>{children}</View>
+    ),
+  };
+});
+
+jest.mock("@/src/infrastructure/ads/AdProvider", () => ({
+  AdProvider: ({ children }: any) => children,
 }));
 
-const mockProgressionInit = jest.fn().mockResolvedValue(undefined);
+// ✅ FIX : jest.fn() défini DIRECTEMENT dans la factory pour éviter le piège
+// de hoisting (const déclarée hors factory = TDZ au moment de l'exécution
+// du jest.mock hoisté par Babel, ce qui rendait initDatabase() undefined
+// à l'exécution réelle malgré un mock "apparemment" correct).
+jest.mock("@/src/infrastructure/persistence/sqlite/initDatabase", () => ({
+  initDatabase: jest.fn().mockResolvedValue(undefined),
+}));
 
-jest.mock("@/src/application/progression/ProgressionService", () => ({
+jest.mock("@/src/meta/progression/ProgressionService", () => ({
   progression: {
-    init: () => mockProgressionInit(),
+    init: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
 // ✅ IMPORTS APRÈS MOCKS
 import { render, waitFor } from "@testing-library/react-native";
+import { Platform } from "react-native";
+import * as SplashScreen from "expo-splash-screen";
+import * as NavigationBar from "expo-navigation-bar";
+import { initDatabase } from "@/src/infrastructure/persistence/sqlite/initDatabase";
+import { progression } from "@/src/meta/progression/ProgressionService";
 import Layout from "../_layout";
+
+// ✅ On récupère les mocks typés APRÈS l'import, via cast — plus sûr que
+// de recréer des jest.fn() externes qui seraient hors du scope hoisted
+const mockInitDatabase = initDatabase as jest.Mock;
+const mockProgressionInit = progression.init as jest.Mock;
 
 describe("Layout", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockInitDatabase.mockResolvedValue(undefined);
+    mockProgressionInit.mockResolvedValue(undefined);
+    Platform.OS = "ios";
   });
 
-  it("calls init functions", async () => {
+  it("should render nothing before init completes", () => {
+    // Arrange & Act
+    mockInitDatabase.mockReturnValue(new Promise(() => {})); // never resolves
+    const { queryByTestId } = render(<Layout />);
+
+    // Assert
+    expect(queryByTestId("app-root")).toBeNull();
+  });
+
+  it("should call init functions on mount", async () => {
+    // Arrange & Act
     render(<Layout />);
 
+    // Assert
     await waitFor(() => {
-      expect(mockInitDatabase).toHaveBeenCalled();
-      expect(mockProgressionInit).toHaveBeenCalled();
+      expect(mockInitDatabase).toHaveBeenCalledTimes(1);
+      expect(mockProgressionInit).toHaveBeenCalledTimes(1);
     });
   });
 
-  it("renders app after init", async () => {
+  it("should call SplashScreen.preventAutoHideAsync and hideAsync around init", async () => {
+    // Arrange & Act
+    render(<Layout />);
+
+    // Assert
+    await waitFor(() => {
+      expect(SplashScreen.preventAutoHideAsync).toHaveBeenCalledTimes(1);
+      expect(SplashScreen.hideAsync).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("should render app root after init completes", async () => {
+    // Arrange & Act
     const { getByTestId } = render(<Layout />);
 
+    // Assert
     await waitFor(() => {
       expect(getByTestId("app-root")).toBeTruthy();
     });
   });
 
-  afterAll(() => {
-    jest.useRealTimers();
+  it("should hide navigation bar on Android", async () => {
+    // Arrange
+    Platform.OS = "android";
+
+    // Act
+    render(<Layout />);
+
+    // Assert
+    await waitFor(() => {
+      expect(NavigationBar.setVisibilityAsync).toHaveBeenCalledWith("hidden");
+    });
+  });
+
+  it("should not call NavigationBar on iOS", async () => {
+    // Arrange
+    Platform.OS = "ios";
+
+    // Act
+    render(<Layout />);
+
+    // Assert
+    await waitFor(() => {
+      expect(mockInitDatabase).toHaveBeenCalled();
+    });
+    expect(NavigationBar.setVisibilityAsync).not.toHaveBeenCalled();
+  });
+
+  it("should still hide splash screen if initDatabase throws (regression test)", async () => {
+    // Arrange
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    mockInitDatabase.mockRejectedValue(new Error("DB init failed"));
+
+    // Act
+    render(<Layout />);
+
+    // Assert
+    await waitFor(() => {
+      expect(SplashScreen.hideAsync).toHaveBeenCalledTimes(1);
+    });
+    expect(consoleSpy).toHaveBeenCalledWith("Init error", expect.any(Error));
+
+    consoleSpy.mockRestore();
+  });
+
+  it("should still hide splash screen if progression.init throws (regression test)", async () => {
+    // Arrange
+    const consoleSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    mockProgressionInit.mockRejectedValue(new Error("Progression init failed"));
+
+    // Act
+    render(<Layout />);
+
+    // Assert
+    await waitFor(() => {
+      expect(SplashScreen.hideAsync).toHaveBeenCalledTimes(1);
+    });
+
+    consoleSpy.mockRestore();
+  });
+
+  it("should not render app-root if an init error occurs (ready stays false)", async () => {
+    // Arrange
+    jest.spyOn(console, "log").mockImplementation(() => {});
+    mockInitDatabase.mockRejectedValue(new Error("DB init failed"));
+
+    // Act
+    const { queryByTestId } = render(<Layout />);
+
+    // Assert
+    await waitFor(() => {
+      expect(SplashScreen.hideAsync).toHaveBeenCalled();
+    });
+    expect(queryByTestId("app-root")).toBeNull();
   });
 });

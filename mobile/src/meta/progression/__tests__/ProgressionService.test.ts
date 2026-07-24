@@ -1,14 +1,14 @@
 import { ProgressionService } from "../ProgressionService"
+import { PlayerState } from "../PlayerState"
+import { ProgressRepository } from "@/src/infrastructure/repositories/ProgressRepository"
 
 // ✅ On mock le repository pour éviter toute dépendance externe (storage, API, etc.)
-jest.mock("@/src/data/repositories/ProgressRepository", () => ({
+jest.mock("@/src/infrastructure/repositories/ProgressRepository", () => ({
   ProgressRepository: {
     get: jest.fn(),
     save: jest.fn(),
   },
 }))
-
-import { ProgressRepository } from "@/src/infrastructure/repositories/ProgressRepository"
 
 // ✅ Fake repo du domaine (monde + niveaux)
 const createMockRepo = () => ({
@@ -16,9 +16,12 @@ const createMockRepo = () => ({
   getWorlds: jest.fn(),
 })
 
-// ✅ Fake état de progression joueur
-const createMockState = () => ({
-  completedLevels: {} as Record<string, number>, // id -> nombre d'étoiles
+// ✅ Fake état de progression joueur — typé strictement selon PlayerState
+// ✅ FIX : ajout de `unlockedLevels` (manquant précédemment, causait un crash
+// sur `this.state.unlockedLevels[levelId]` dans isLevelUnlocked())
+const createMockState = (): PlayerState => ({
+  completedLevels: {}, // id -> nombre d'étoiles
+  unlockedLevels: {}, // id -> boolean
   currency: {
     bubble: 100,
     gold: 0,
@@ -46,6 +49,21 @@ describe("ProgressionService", () => {
 
     // ✅ Vérifie que le state interne est bien chargé
     expect(service.getState()).toBe(state)
+  })
+
+  // ✅ Test de régression : garantit que unlockedLevels est toujours présent
+  it("should have unlockedLevels defined after init (regression test)", async () => {
+    const repo = createMockRepo()
+    const state = createMockState()
+
+    ;(ProgressRepository.get as jest.Mock).mockResolvedValue(state)
+
+    const service = new ProgressionService(repo as any)
+    await service.init()
+
+    // ✅ Garde-fou contre une régression future du mock ou du type PlayerState
+    expect(service.getState().unlockedLevels).toBeDefined()
+    expect(typeof service.getState().unlockedLevels).toBe("object")
   })
 
   // =========================
@@ -104,6 +122,26 @@ describe("ProgressionService", () => {
     await service.init()
 
     // ✅ Niveau 2 devient accessible
+    expect(service.isLevelUnlocked("world", "2")).toBe(true)
+  })
+
+  it("should treat level as already unlocked if present in unlockedLevels", async () => {
+    const repo = createMockRepo()
+    const state = createMockState()
+
+    // ✅ Cas explicite : déblocage manuel via unlockLevel()
+    state.unlockedLevels["2"] = true
+
+    repo.getWorldById.mockReturnValue({
+      levelList: [{ id: "1" }, { id: "2" }],
+    })
+
+    ;(ProgressRepository.get as jest.Mock).mockResolvedValue(state)
+
+    const service = new ProgressionService(repo as any)
+    await service.init()
+
+    // ✅ Même si le niveau précédent n'est pas complété, unlockedLevels prime
     expect(service.isLevelUnlocked("world", "2")).toBe(true)
   })
 
@@ -271,6 +309,23 @@ describe("ProgressionService", () => {
     expect(service.isWorldUnlocked("w2")).toBe(true)
   })
 
+  it("should return false for unknown world id", async () => {
+    const repo = createMockRepo()
+    const state = createMockState()
+
+    repo.getWorlds.mockReturnValue([
+      { id: "w1", levelList: [] },
+    ])
+
+    ;(ProgressRepository.get as jest.Mock).mockResolvedValue(state)
+
+    const service = new ProgressionService(repo as any)
+    await service.init()
+
+    // ✅ Edge case : id inexistant dans la liste des mondes
+    expect(service.isWorldUnlocked("unknown")).toBe(false)
+  })
+
   // =========================
   // ✅ COMPLETION %
   // =========================
@@ -293,5 +348,35 @@ describe("ProgressionService", () => {
 
     // ✅ 50% de progression
     expect(service.getWorldCompletion("world")).toBe(50)
+  })
+
+  it("should return 0 completion for unknown world", async () => {
+    const repo = createMockRepo()
+    const state = createMockState()
+
+    repo.getWorldById.mockReturnValue(undefined)
+
+    ;(ProgressRepository.get as jest.Mock).mockResolvedValue(state)
+
+    const service = new ProgressionService(repo as any)
+    await service.init()
+
+    // ✅ Edge case : monde inexistant → 0%
+    expect(service.getWorldCompletion("unknown")).toBe(0)
+  })
+
+  it("should return 0 completion for world with no levels", async () => {
+    const repo = createMockRepo()
+    const state = createMockState()
+
+    repo.getWorldById.mockReturnValue({ levelList: [] })
+
+    ;(ProgressRepository.get as jest.Mock).mockResolvedValue(state)
+
+    const service = new ProgressionService(repo as any)
+    await service.init()
+
+    // ✅ Edge case : division par zéro évitée
+    expect(service.getWorldCompletion("world")).toBe(0)
   })
 })

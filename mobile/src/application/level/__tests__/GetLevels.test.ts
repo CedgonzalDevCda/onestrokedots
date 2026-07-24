@@ -1,13 +1,13 @@
 import { GetLevels } from "../GetLevels"
 
 // ✅ Mock des dépendances (repositories)
-jest.mock("@/src/data/repositories/LevelRepository", () => ({
+jest.mock("@/src/infrastructure/repositories/LevelRepository", () => ({
   levelRepository: {
     getLevelsByWorld: jest.fn(),
   },
 }))
 
-jest.mock("@/src/data/repositories/ProgressRepository", () => ({
+jest.mock("@/src/infrastructure/repositories/ProgressRepository", () => ({
   ProgressRepository: {
     get: jest.fn(),
   },

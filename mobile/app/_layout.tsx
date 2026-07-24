@@ -48,7 +48,7 @@ export default function Layout() {
           <StatusBar hidden />
 
           <AdProvider>
-            <View style={styles.container}>
+            <View style={styles.container} testID="app-root">
               
               {/* ✅ NAVIGATION */}
               <Stack screenOptions={{ headerShown: false }}>

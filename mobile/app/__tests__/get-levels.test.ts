@@ -1,10 +1,11 @@
-jest.mock("../../src/data/repositories/LevelRepository", () => ({
+// ✅ Chemins corrigés vers src/infrastructure/repositories/*
+jest.mock("../../src/infrastructure/repositories/LevelRepository", () => ({
   levelRepository: {
     getLevelsByWorld: jest.fn().mockReturnValue([]),
   },
 }));
 
-jest.mock("../../src/data/repositories/ProgressRepository", () => ({
+jest.mock("../../src/infrastructure/repositories/ProgressRepository", () => ({
   ProgressRepository: {
     get: jest.fn().mockResolvedValue({ completedLevels: {} }),
   },
@@ -12,6 +13,9 @@ jest.mock("../../src/data/repositories/ProgressRepository", () => ({
 
 import { GetLevels } from "../../src/application/level/GetLevels";
 
-test("GetLevels is defined", () => {
-  expect(GetLevels).toBeDefined();
+describe("GetLevels", () => {
+  it("should be defined", () => {
+    // Assert
+    expect(GetLevels).toBeDefined();
+  });
 });
