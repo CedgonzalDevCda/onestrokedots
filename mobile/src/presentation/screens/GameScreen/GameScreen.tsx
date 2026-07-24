@@ -35,6 +35,8 @@ export default function GameScreen() {
     home,
   } = flow
 
+  const hasOrderedStarsRule = level.rules?.some(r => r.type === "ordered-stars") ?? false
+
   return (
     <View style={styles.container}>
       <View
@@ -52,6 +54,7 @@ export default function GameScreen() {
           isPathValid={gameState.isPathValid}
           startPointIds={startPointIds}
           endPointIds={endPointIds}
+          hasOrderedStarsRule={hasOrderedStarsRule}
         />
       </View>
 

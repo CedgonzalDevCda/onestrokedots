@@ -26,7 +26,7 @@ function getSubBadgeContent(rule: LevelRuleConfig): string | null {
     case "min-stars":
       return String(rule.params.qty)
     case "ordered-stars":
-      return String(rule.params.order.length)
+      return `${rule.params.order[0]} to ${rule.params.order[rule.params.order.length - 1]}`
     default:
       return null
   }

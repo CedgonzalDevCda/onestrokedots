@@ -21,6 +21,7 @@ export type GameBoardProps = {
   isPathValid: boolean
   startPointIds?: Set<string>
   endPointIds?: Set<string>
+  hasOrderedStarsRule?: boolean
 }
 
 export function GameBoard({
@@ -32,13 +33,15 @@ export function GameBoard({
   isPathValid,
   startPointIds,
   endPointIds,
+  hasOrderedStarsRule = false,
 }: GameBoardProps) {
   return (
     <Svg width="100%" height="100%">
-      <StarsLayer
-        stars={stars}
-        collectedStars={collectedStars}
+      <StarsLayer 
+        stars={stars} 
+        collectedStars={collectedStars} 
         isPathValid={isPathValid}
+        hasOrderedStarsRule={hasOrderedStarsRule}
       />
 
       <PathLayer path={path} />

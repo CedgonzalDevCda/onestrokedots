@@ -5,6 +5,7 @@ import { VisitCountRule } from "@/src/core/rules/VisitCountRule"
 import { NoBacktrackRule } from "@/src/core/rules/NoBacktrackRule"
 import { StartPointRule } from "@/src/core/rules/StartPointRule"
 import { EndPointRule } from "@/src/core/rules/EndPointRule"
+import { OrderedStarsRule} from "@/src/core/rules/OrderedStarsRule"
 import { MinStarsRule } from "@/src/core/rules/MinStarsRule"
 
 export type ValidationResult =
@@ -17,7 +18,7 @@ const RULES_REGISTRY: Record<string, ValidationRule> = {
   "start-point": new StartPointRule(),
   "end-point": new EndPointRule(),
   "min-stars": new MinStarsRule(),
-  // "ordered-stars": new OrderedStarsRule(),
+  "ordered-stars": new OrderedStarsRule(),
   // "avoid-zone": new AvoidZoneRule(),
   // "color-match": new ColorMatchRule(),
 }
