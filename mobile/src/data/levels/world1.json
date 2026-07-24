@@ -745,6 +745,220 @@
           "size": 60
         }
       ]
+    },
+        {
+      "id": "14",
+      "name": "Level 14",
+      "rules": [
+        { "type": "start-point", "params": { "pointId": "3" } },
+        { "type": "end-point", "params": { "pointId": "6" } }
+      ],
+      "points": [
+        {
+          "id": "1",
+          "x": 100,
+          "y": 240,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "2",
+          "x": 300,
+          "y": 240,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "3",
+          "x": 200,
+          "y": 340,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "4",
+          "x": 100,
+          "y": 440,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "5",
+          "x": 300,
+          "y": 440,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "6",
+          "x": 200,
+          "y": 540,
+          "value": 1,
+          "radius": 32
+        }
+      ],
+      "stars": [
+        {
+          "id": "1",
+          "x": 200,
+          "y": 240,
+          "size": 60
+        },
+        {
+          "id": "2",
+          "x": 100,
+          "y": 340,
+          "size": 60
+        },
+        {
+          "id": "3",
+          "x": 200,
+          "y": 470,
+          "size": 60
+        }
+
+      ]
+    },
+    {
+      "id": "15",
+      "name": "Level 15",
+      "rules": [
+        { "type": "start-point", "params": { "pointId": "3" } },
+        { "type": "end-point", "params": { "pointId": "6" } },
+        { "type": "ordered-stars", "params": { "order": ["1", "2", "3"] } }
+      ],
+      "points": [
+        {
+          "id": "1",
+          "x": 100,
+          "y": 240,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "2",
+          "x": 300,
+          "y": 240,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "3",
+          "x": 200,
+          "y": 340,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "4",
+          "x": 100,
+          "y": 440,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "5",
+          "x": 300,
+          "y": 440,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "6",
+          "x": 200,
+          "y": 540,
+          "value": 1,
+          "radius": 32
+        }
+      ],
+      "stars": [
+        {
+          "id": "1",
+          "x": 200,
+          "y": 240,
+          "size": 60
+        },
+        {
+          "id": "2",
+          "x": 100,
+          "y": 340,
+          "size": 60
+        },
+        {
+          "id": "3",
+          "x": 200,
+          "y": 470,
+          "size": 60
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "name": "Level 16",
+      "rules": [
+        { "type": "start-point", "params": { "pointId": "1" } },
+        { "type": "end-point", "params": { "pointId": "7" } }
+      ],
+      "points": [
+        {
+          "id": "1",
+          "x": 100,
+          "y": 240,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "2",
+          "x": 100,
+          "y": 340,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "3",
+          "x": 200,
+          "y": 340,
+          "value": 4,
+          "radius": 32
+        },
+        {
+          "id": "4",
+          "x": 100,
+          "y": 440,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "5",
+          "x": 200,
+          "y": 440,
+          "value": 3,
+          "radius": 32
+        },
+        {
+          "id": "6",
+          "x": 300,
+          "y": 440,
+          "value": 1,
+          "radius": 32
+        },
+                {
+          "id": "7",
+          "x": 200,
+          "y": 540,
+          "value": 5,
+          "radius": 32
+        },
+                {
+          "id": "8",
+          "x": 300,
+          "y": 540,
+          "value": 1,
+          "radius": 32
+        }
+      ],
+      "stars": [
+      ]
     }
   ]
 }
