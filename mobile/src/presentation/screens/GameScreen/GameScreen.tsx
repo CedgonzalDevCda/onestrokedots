@@ -1,4 +1,4 @@
-// src/presentation/features/game/GameScreen.tsx
+// src/presentation/screens/GameScreen/GameScreen.tsx
 import { View } from "react-native"
 import { useLocalSearchParams } from "expo-router"
 
@@ -9,6 +9,7 @@ import { AdBanner } from "@/src/infrastructure/ads/AdBanner"
 import { styles } from "./GameScreen.styles"
 import { GameBoard } from "./components/GameBoard"
 import { EndGameModal } from "./components/EndGameModal"
+import { RulesBadgeList } from "./components/RulesBadgeList"
 
 export default function GameScreen() {
   const { worldId, levelId } = useLocalSearchParams()
@@ -53,6 +54,8 @@ export default function GameScreen() {
           endPointIds={endPointIds}
         />
       </View>
+
+      <RulesBadgeList rules={level.rules ?? []} />
 
       <View style={styles.bannerContainer}>
         <AdBanner placement="home" />

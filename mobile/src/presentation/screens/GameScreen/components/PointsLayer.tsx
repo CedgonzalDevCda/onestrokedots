@@ -40,7 +40,7 @@ export function PointsLayer({
       if (count > 0 && count < p.value) fillColor = "#93c5fd"
       if (count === p.value) fillColor = "#22c55e"
       if (count > p.value) fillColor = "#ef4444"
-      if (count === 0) fillColor = "white"
+      if (count === 0) fillColor = "black"
     }
 
     return (
@@ -63,7 +63,7 @@ export function PointsLayer({
           cx={p.x}
           cy={p.y}
           r={p.radius}
-          stroke="#000"
+          stroke="#fff"
           strokeWidth={3}
           fill={fillUrl ?? fillColor}
         />
@@ -71,7 +71,7 @@ export function PointsLayer({
           x={p.x}
           y={p.y + 6}
           fontSize="18"
-          fill="black"
+          fill="white"
           textAnchor="middle"
         >
           {p.value - count}
