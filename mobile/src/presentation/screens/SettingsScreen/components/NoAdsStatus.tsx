@@ -1,5 +1,5 @@
 import { Text, StyleSheet } from "react-native"
-import { AdMode } from "@/src/infrastructure/ads/AdProvider"
+import { AdMode } from "@/src/infrastructure/ads/AdProvider.web"
 
 export default function NoAdsStatus({ adMode }: { adMode: AdMode }) {
   if (adMode !== "no_ads") return null

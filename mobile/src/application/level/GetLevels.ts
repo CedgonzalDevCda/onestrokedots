@@ -1,5 +1,5 @@
 import { levelRepository } from "@/src/infrastructure/repositories/LevelRepository"
-import { ProgressRepository } from "@/src/infrastructure/repositories/ProgressRepository"
+import { ProgressRepository } from "@/src/infrastructure/repositories/ProgressRepository.native"
 import { Level } from "@/src/core/models/Level"
 
 export type LevelWithProgress = Level & {

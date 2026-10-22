@@ -1,6 +1,6 @@
 # Cahier des charges — OneStrokeDots
 
-**Version du document :** 1.0 — **Date de référence :** 6 octobre 2026  
+**Version du document :** 1.1 — **Date de référence :** 6 octobre 2026  
 **Cible de sortie :** fin octobre 2026
 
 ## Table des matières
@@ -15,7 +15,7 @@
 8. Progression  
 9. Monétisation  
 10. Architecture technique  
-11. Découpage des features  
+11. Découpage des features
 12. Architecture interne du jeu  
 13. Modélisation mathématique  
 14. Moteur de niveau  
@@ -96,6 +96,10 @@ Un JSON de niveau contient au minimum `schemaVersion`, `id`, `worldId`, `points`
 
 La liste `rules` peut déclarer : départ imposé, arrivée imposée, nombre minimal d’étoiles, étoiles numérotées à parcourir dans l’ordre, bonus ou contraintes spéciales. Les bonus sont des items ou des étoiles présents dans le niveau. Toute règle est data-driven et explicitement affichée.
 
+### 3.6 Préférences de notifications
+
+Le schéma de sauvegarde inclut `notificationPrefs`, objet versionné contenant `version`, `generalEnabled` et les valeurs par famille : `retention`, `reminder`, `behavioral`, `economic`, `social`, `editorial`. La valeur générale suspend l’émission sans effacer les choix par famille. La permission système n’est pas considérée comme une préférence synchronisée : elle est réévaluée sur chaque appareil.
+
 ## 4. Principe du gameplay
 
 Le joueur démarre un tracé sur un point autorisé et relie les points en un seul geste. Les passages sont comptés exactement ; chaque arête/segment déjà utilisé est interdit. Le niveau est valide si tous les points atteignent exactement leur valeur, les contraintes additionnelles sont respectées et aucune arête n’est réutilisée. Les étoiles peuvent être collectées séparément pour atteindre 100 %.
@@ -112,14 +116,16 @@ Le geste est capturé comme une suite de positions horodatées. Les positions so
 | Sélection monde | Monde 1 disponible ; monde suivant par 100 % intégral ou dépense des items du Wallet. |
 | Sélection niveau | Campagne et Niveaux téléchargés ; bannière autorisée ; états verrouillé, terminé, 100 %. |
 | Écran de jeu | Zone de tracé, retour, reset, indices, résultat, étoiles et bonus. |
-| Paramètres | Trois modes de pubs, consentements, audio/haptique, restauration des achats, suppression de compte. |
+| Paramètres | Trois modes de pubs, consentements, audio/haptique, restauration des achats, suppression de compte, bloc Notifications : interrupteur général + bouton « Personnaliser » (écran des familles, un interrupteur chacune, mention « Bientôt disponible » pour les familles non livrées). |
 | Shop | Packs d’indices/étoiles/monnaie et slots futurs ; accès accueil uniquement. |
 | Wallet | Gold/items servant à débloquer des mondes et visualiser les soldes. |
 | Tab bar | Quatre onglets : Accueil, Wallet, Niveaux, Éditeur. |
 | Tutoriel | Guidé, skippable, sans pub, étapes persistées ; machine à états. |
 | Consentements | UMP/ATT et RGPD avec choix lisible, sans case pré-cochée pour newsletter. |
 
-Au lancement, Daily reward, Défi quotidien, Parrainer un ami, Restaurer les achats, Éditeur et Webstore restent visibles, cliquables et marqués « En construction »/« Bientôt disponible » ; un message « Bientôt disponible » est affiché. Un fichier de feature flags pilote ces états. La restauration est toutefois obligatoire sur iOS dès qu’un non-consommable existe : activation au lancement recommandée **[HYPOTHÈSE À VALIDER]**.
+**Sous-écran « Personnaliser les notifications » :** accessible depuis Paramètres via « Personnaliser » lorsque l’interrupteur général est activé ; il présente une ligne par famille de notifications, son interrupteur, son libellé et sa description. Les familles non livrées restent visibles, désactivées et portent la mention « Bientôt disponible ».
+
+Au lancement, Daily reward, Défi quotidien, Parrainer un ami, Restaurer les achats, Éditeur et Webstore restent visibles, cliquables et marqués « En construction »/« Bientôt disponible » ; un message « Bientôt disponible » est affiché. Un fichier de feature flags pilote ces états, notamment `notif.retention`, `notif.reminder`, `notif.behavioral`, `notif.economic`, `notif.social` et `notif.editorial`. La restauration est toutefois obligatoire sur iOS dès qu’un non-consommable existe : activation au lancement recommandée **[HYPOTHÈSE À VALIDER]**.
 
 ## 7. Animations
 
@@ -170,6 +176,7 @@ Clean Architecture en quatre zones : **Presentation**, **Stores**, **Domain-Core
 Le tracé haute fréquence passe par shared values Skia/Reanimated ; les stores ne sont mis à jour qu’aux événements discrets. `useAppBootstrap.ready` doit être vrai avant de quitter le splash. Les transactions économiques sont atomiques, une transaction SQLite par use case, par exemple `completeLevel` applique étoiles, gold, bonus, compteur d’interstitiel et journal de transaction. Les sélecteurs sont fins, sans dépendance circulaire. Cette architecture est **[HYPOTHÈSE À VALIDER]** car l’existant du MVP n’est pas tranché.
 
 Le backend Express expose des contrats versionnés pour newsletter, achats, parrainage et publication UGC. Aucun appel analytics n’est fait depuis un composant : les use cases appellent un service d’événements.
+Le backend Express expose aussi un endpoint versionné de synchronisation des préférences de notifications (par exemple `PUT /v1/me/notification-preferences`) : préférences par famille, valeur générale, `version` et révision. Les mises à jour hors ligne sont mises en file côté client ; en conflit, la valeur la plus restrictive prévaut.
 
 ## 11. Découpage des features
 
@@ -204,7 +211,7 @@ Le backend Express expose des contrats versionnés pour newsletter, achats, parr
 | 25 | F-25 | Webstore, modération et signalement | V1.2 | Could | XL | F-24,F-11 | À faire |
 | 26 | F-26 | Slots de publication | V1.2 | Could | M | F-25,F-13 | À faire |
 | 27 | F-27 | Live Ops et contenu distant | V1.3+ | Could | L | F-21,F-25 | À faire |
-| 28 | F-28 | Notifications push (rétention, rappel, comportemental, social, économique/FOMO, éditorial) | V1.1 (socle local) puis V1.2+ (distant) | Should | L | F-11, F-12, F-09, F-23, F-27 | À faire |
+| 28 | F-28 | Écran de réglages des notifications | V1.1 | Could | L | F-09,F-11,F-12,F-17,F-23 | À faire |
 
 ### 11.2 Fiches d’acceptation
 
@@ -278,7 +285,7 @@ Format : **Given** (étant donné), **When** (quand), **Then** (alors). Les para
 
 **Description :** La progression est offline-first, versionnée et migrable.  
 **Given/When/Then :** Given une base locale ancienne ou absente, When l’application démarre, Then les migrations sont atomiques, le splash attend ready et aucune progression valide n’est perdue.  
-**Paramètres configurables :** schemaVersion, stratégie de conflit max par niveau, fréquence de sauvegarde, cloud au lancement ou V1.1.  
+**Paramètres configurables :** schemaVersion, stratégie de conflit max par niveau, fréquence de sauvegarde, cloud au lancement ou V1.1, schéma `notificationPrefs` (général, familles, version).  
 **Événements analytics :** save_started, migration_result, conflict_resolved  
 **Cas limites :** Interruption pendant transaction, stockage plein, changement de téléphone, suppression de compte.
 
@@ -292,21 +299,24 @@ Format : **Given** (étant donné), **When** (quand), **Then** (alors). Les para
 
 #### F-11 — Consentements et conformité RGPD (fiche détaillée)
 
-**Description :** Les finalités RGPD et ATT sont séparées et explicites.  
-**Given/When/Then :** Given un utilisateur non consentant, When une pub ou analytics doit être lancé, Then le SDK est limité conformément au choix et aucun consentement newsletter n’est pré-coché.  
-**Paramètres configurables :** UMP/ATT, régions, version de consentement, rétention.  
-**Événements analytics :** consent_shown, consent_updated, att_result  
-**Cas limites :** Refus, révocation, mode hors ligne, mineur.
+**Description :** Les finalités RGPD et ATT sont séparées et explicites. La finalité « notifications » est distincte de la newsletter, non pré-cochée, versionnée et révocable. Chaque bascule de préférence de notification laisse une trace horodatée avec la famille, la valeur et la version du consentement.  
+**Given/When/Then :** Given un utilisateur non consentant, When une pub, analytics ou notification doit être lancé, Then le SDK/service est limité conformément au choix et aucun consentement newsletter ou notification n’est pré-coché.  
+**Paramètres configurables :** UMP/ATT, régions, finalités newsletter et notifications séparées, version de consentement, rétention.  
+**Événements analytics :** consent_shown, consent_updated, att_result, notification_consent_changed  
+**Cas limites :** Refus, révocation, mode hors ligne, mineur, permission système révoquée.
 
 #### F-12 — Analytics, funnel et Crashlytics (fiche détaillée)
 
 **Description :** Les événements sont émis par les use cases et alimentent le funnel Installation → tutoriel → niveau 5 → niveau 20 → monde 2.  
 **Given/When/Then :** Given le consentement requis, When une étape métier réussit, Then l’événement est envoyé avec paramètres minimisés et sans données personnelles inutiles.  
 **Paramètres configurables :** Noms d’événements, KPI D1/D7, taux no-ads, % mode agressif, Crashlytics.  
-**Événements analytics :** funnel_step, level_event, economy_event, ad_event  
+**Événements analytics :** funnel_step, level_event, economy_event, ad_event, notif_pref_changed (famille, valeur, source : général ou famille), notif_settings_opened, notif_customize_opened  
 **Cas limites :** Consentement refusé, doublons, perte réseau.
 
 #### F-13 — Wallet, catalogue Shop et monnaie
+
+**Impact notifications :** la famille Économique pourra signaler les offres du Shop et événements à durée limitée à partir de V1.2 ; désactivée par défaut et non livrée avant son flag.  
+
 
 **Description :** Gold/items, catalogue data-driven et transactions atomiques.  
 **Given/When/Then :** Given la dépendance disponible, When la feature est utilisée, Then le comportement décrit est observable, persistant si nécessaire et couvert par des tests.  
@@ -380,6 +390,9 @@ Format : **Given** (étant donné), **When** (quand), **Then** (alors). Les para
 
 #### F-22 — Parrainage
 
+**Impact notifications :** la famille Social pourra signaler les événements liés aux amis et à la communauté à partir de V1.3+ ; verrouillée tant que la feature n’est pas livrée.  
+
+
 **Description :** Bonus par appareil après tutoriel du filleul.  
 **Given/When/Then :** Given la dépendance disponible, When la feature est utilisée, Then le comportement décrit est observable, persistant si nécessaire et couvert par des tests.  
 **Paramètres configurables :** catalogue, feature flags et règles de niveau selon le périmètre.  
@@ -387,6 +400,9 @@ Format : **Given** (étant donné), **When** (quand), **Then** (alors). Les para
 **Cas limites :** absence réseau, reprise après fermeture, données invalides, double action et version antérieure.
 
 #### F-23 — Daily reward et défi quotidien
+
+**Impact notifications :** la famille Rappel couvre les récompenses et défis quotidiens, activée par défaut en V1.1 mais verrouillée tant que ces features sont « En construction ».  
+
 
 **Description :** Deux features distinctes, règles spéciales et récompenses.  
 **Given/When/Then :** Given la dépendance disponible, When la feature est utilisée, Then le comportement décrit est observable, persistant si nécessaire et couvert par des tests.  
@@ -404,6 +420,9 @@ Format : **Given** (étant donné), **When** (quand), **Then** (alors). Les para
 
 #### F-25 — Webstore, modération et signalement
 
+**Impact notifications :** la famille Social pourra signaler un niveau téléchargé ou noté à partir de V1.3+ ; la famille Économique couvrira les offres et événements limités selon disponibilité.  
+
+
 **Description :** Publication, téléchargement, signalement, retrait et CGU.  
 **Given/When/Then :** Given la dépendance disponible, When la feature est utilisée, Then le comportement décrit est observable, persistant si nécessaire et couvert par des tests.  
 **Paramètres configurables :** catalogue, feature flags et règles de niveau selon le périmètre.  
@@ -420,14 +439,80 @@ Format : **Given** (étant donné), **When** (quand), **Then** (alors). Les para
 
 #### F-27 — Live Ops et contenu distant
 
+**Impact notifications :** les familles Économique et Éditorial pourront relayer les événements, offres et nouveautés distants lorsqu’elles sont livrées ; activation volontaire pour les familles désactivées par défaut.  
+
+
 **Description :** Événements, contenu et pilotage progressif.  
 **Given/When/Then :** Given la dépendance disponible, When la feature est utilisée, Then le comportement décrit est observable, persistant si nécessaire et couvert par des tests.  
 **Paramètres configurables :** catalogue, feature flags et règles de niveau selon le périmètre.  
 **Événements analytics :** `f-27_started`, `f-27_completed`, `f-27_error`.  
 **Cas limites :** absence réseau, reprise après fermeture, données invalides, double action et version antérieure.
 
+#### F-28 — Écran de réglages des notifications
 
+**Version :** V1.1 pour le socle de réglages et les familles Rétention/Rappel ; familles Comportemental et Économique en V1.2 ; Social et Éditorial en V1.3+ **[HYPOTHÈSE À VALIDER]**.  
+**Taille :** L **[HYPOTHÈSE À VALIDER]**.  
+**Dépendances :** F-09, F-11, F-12, F-17 et F-23.
 
+**Description :** Le bloc Notifications de Paramètres permet d'activer ou désactiver toutes les notifications, puis de personnaliser les familles sans perdre les choix mémorisés. Le bouton « Personnaliser » reste visible dans tous les cas, mais est grisé et non cliquable lorsque le général est éteint.
+
+**Bloc visuel :**
+
+```text
+NOTIFICATIONS
+Activer les notifications [switch] (état : activées/désactivées)
+[Personnaliser ›] (grisé tant que le général est éteint)
+```
+
+**Tableau des éléments :**
+
+| Élément | Comportement |
+|---|---|
+| Interrupteur général | Active/désactive toutes les notifications d'un coup sans effacer les choix par famille. |
+| Bouton « Personnaliser » | Ouvre l'écran de choix par famille, visible dans tous les cas, grisé et non cliquable si le général est éteint. |
+| Ligne d'état de la permission | Apparaît seulement si la permission système est refusée : « Les notifications sont bloquées dans les réglages de votre téléphone » + bouton « Ouvrir les réglages système ». |
+
+**Sous-écran « Personnaliser les notifications » :**
+
+| Famille | Libellé joueur | Description affichée | Défaut | Disponibilité |
+|---|---|---|---|---|
+| Rétention | Rappels de retour | « On vous prévient quand vous n'avez pas joué depuis un moment » | Activé | V1.1 |
+| Rappel | Récompenses et défis | « Daily reward et défi quotidien prêts » | Activé | V1.1 (verrouillé tant que ces features sont « En construction ») |
+| Comportemental | Conseils et progression | « Un niveau à finir, un monde presque terminé, une série à ne pas perdre » | Activé | V1.2 |
+| Économique | Offres et événements limités | « Offres du Shop et événements à durée limitée » | Désactivé | V1.2 |
+| Social | Amis et communauté | « Un ami vous a rejoint, un niveau a été téléchargé ou noté » | Activé | V1.3+ (verrouillé) |
+| Éditorial | Actualités | « Nouveaux mondes, nouveautés du jeu » | Désactivé | V1.3+ |
+
+Économique et Éditorial sont désactivés par défaut car ce sont les familles les plus intrusives et à risque conformité ; leur activation est volontaire. Une famille dont la feature n'existe pas s'affiche désactivée avec « Bientôt disponible », conformément à la règle « En construction ». Message en bas : « Vous pouvez modifier ces choix à tout moment. »
+
+**Règles de comportement :**
+
+| Règle | Comportement |
+|---|---|
+| Hiérarchie | Le général prime ; s'il est éteint, aucune notification n'est émise. |
+| Mémorisation | Éteindre le général conserve l'état des familles ; rallumer le restaure. |
+| Premier allumage | Si la permission n'a jamais été demandée : écran d'explication puis demande système. |
+| Permission refusée | L'interrupteur général reste modifiable côté jeu ; une ligne d'état prévient que rien ne sera reçu tant que la permission n'est pas accordée. |
+| Effet immédiat | Chaque bascule annule/replanifie les notifications locales de la famille sans redémarrage. |
+| Synchronisation serveur | Les choix sont transmis au backend par famille, avec la valeur pour les notifications distantes ; hors ligne, ils sont mis en file puis synchronisés. En conflit, la valeur la plus restrictive prévaut. |
+| Sauvegarde | Les préférences sont incluses dans la sauvegarde cloud F-09 ; la permission système est redemandée après un changement de téléphone. |
+| Consentement | Chaque bascule enregistre via F-11 une trace horodatée famille/valeur/version. |
+
+**Given/When/Then :**
+
+- **(a)** Given le général activé, When le joueur ouvre Paramètres, Then le bouton « Personnaliser » est actif.
+- **(b)** Given le général éteint, When l'écran est affiché, Then le bouton est grisé et aucune notification n'est planifiée.
+- **(c)** Given l'écran Personnaliser ouvert, When le joueur désactive la famille Rétention, Then les notifications locales sont annulées immédiatement et `notif_pref_changed` est émis.
+- **(d)** Given le général éteint puis rallumé, When les paramètres sont relus, Then les choix par famille sont identiques à ceux d'avant l'extinction.
+- **(e)** Given la permission système refusée, When le joueur allume le général, Then la ligne d'état avec le bouton vers les réglages système est affichée et aucune boîte de dialogue système répétée n'est présentée.
+- **(f)** Given une famille non livrée, When l'écran est affiché, Then elle est désactivée avec « Bientôt disponible » et non modifiable.
+
+**Paramètres configurables :** familles et défauts ; libellés et descriptions localisés ; flags de disponibilité `notif.retention`, `notif.reminder`, `notif.behavioral`, `notif.economic`, `notif.social`, `notif.editorial`.  
+**Événements analytics :** `notif_pref_changed` (famille, valeur, source : général ou famille), `notif_settings_opened`, `notif_customize_opened`.  
+**Cas limites :** permission révoquée depuis les réglages du téléphone alors que le général est allumé (état incohérent détecté au lancement et signalé), bascule hors ligne, double appui rapide (idempotence et dernier état conservé), changement de langue, restauration sur un nouvel appareil.  
+**Domain :** use cases d'activation générale, de personnalisation par famille, de permission et de synchronisation ; hiérarchie générale/familles et règle de restriction.  
+**Data :** store local versionné, notifications locales planifiées, endpoint de synchronisation serveur, file hors ligne et journal de consentement ; migration de `notificationPrefs`.  
+**Presentation :** bloc Paramètres, écran d'explication et écran « Personnaliser les notifications », états activé/désactivé/verrouillé, accessibilité, libellés localisés et deep link vers les réglages système.
 
 ## 12. Architecture interne du jeu
 
@@ -520,10 +605,11 @@ Objectif : 60 FPS sur appareils cibles. Le tracé haute fréquence doit rester d
 ## 22. Sauvegarde et persistance
 
 SQLite est offline-first au lancement. Les tables versionnées couvrent profils, niveaux, résultats, Wallet, entitlements en cache, flags et journal des transactions. Chaque profil et chaque niveau portent `schemaVersion`. Une migration est atomique et idempotente. La sauvegarde cloud au lancement contre une V1.1 reste ouverte **[HYPOTHÈSE À VALIDER]** ; en cas de conflit, le meilleur résultat par niveau est conservé selon une règle documentée. La suppression de compte efface les données serveur et guide l’effacement local ; le changement de téléphone et la restauration d’achats sont des parcours dédiés.
+Pour les notifications, le schéma contient `notificationPrefs: { version, generalEnabled, families: { retention, reminder, behavioral, economic, social, editorial } }`. La permission native reste propre à l’appareil et doit être redemandée sur un nouvel appareil. Le backend synchronise ces préférences via un endpoint versionné ; les écritures hors ligne sont rejouées avec la valeur la plus restrictive en cas de conflit.
 
 ## 23. Analytics
 
-Plan minimal : installation, bootstrap, tutoriel, affichage/complétion de niveau, monde, étoiles, indices, Wallet, achats, pubs, newsletter, consentements et clics sur boutons verrouillés. Funnel : Installation → tutoriel terminé → niveau 5 → niveau 20 → monde 2. KPI : D1, D7, conversion no-ads, part du mode agressif, taux d’échec et usage des indices. Firebase Analytics + Crashlytics sont proposés **[HYPOTHÈSE À VALIDER]** ; les événements respectent consentements, minimisation et rétention.
+Plan minimal : installation, bootstrap, tutoriel, affichage/complétion de niveau, monde, étoiles, indices, Wallet, achats, pubs, newsletter, consentements, notifications et clics sur boutons verrouillés. Les événements notifications sont `notif_pref_changed` (famille, valeur, source : général ou famille), `notif_settings_opened` et `notif_customize_opened`. Funnel : Installation → tutoriel terminé → niveau 5 → niveau 20 → monde 2. KPI : D1, D7, conversion no-ads, part du mode agressif, taux d’échec et usage des indices. Firebase Analytics + Crashlytics sont proposés **[HYPOTHÈSE À VALIDER]** ; les événements respectent consentements, minimisation et rétention.
 
 ## 24. Conformité
 

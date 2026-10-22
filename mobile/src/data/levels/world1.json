@@ -7,7 +7,7 @@
       "name": "Level 1",
       "rules": [
         { "type": "start-point", "params": { "pointId": "1" } },
-        { "type": "end-point", "params": { "pointId": "5" } }
+        { "type": "end-point", "params": { "pointId": "4" } }
       ],
       "points": [
         {
@@ -26,33 +26,25 @@
         },
         {
           "id": "3",
-          "x": 200,
-          "y": 340,
+          "x": 100,
+          "y": 440,
           "value": 2,
           "radius": 32
         },
         {
           "id": "4",
-          "x": 100,
-          "y": 440,
-          "value": 1,
-          "radius": 32
-        },
-        {
-          "id": "5",
           "x": 300,
           "y": 440,
           "value": 1,
           "radius": 32
         }
       ],
-      "stars": [
-      ]
+      "stars": []
     },
     {
       "id": "2",
       "name": "Level 2",
-            "rules": [
+      "rules": [
         { "type": "start-point", "params": { "pointId": "4" } },
         { "type": "end-point", "params": { "pointId": "5" } }
       ],
@@ -93,13 +85,12 @@
           "radius": 32
         }
       ],
-      "stars": [
-      ]
+      "stars": []
     },
     {
       "id": "3",
       "name": "Level 3",
-            "rules": [
+      "rules": [
         { "type": "start-point", "params": { "pointId": "2" } },
         { "type": "end-point", "params": { "pointId": "3" } }
       ],
@@ -140,13 +131,12 @@
           "radius": 32
         }
       ],
-      "stars": [
-      ]
+      "stars": []
     },
     {
       "id": "4",
       "name": "Level 4",
-            "rules": [
+      "rules": [
         { "type": "start-point", "params": { "pointId": "3" } },
         { "type": "end-point", "params": { "pointId": "5" } }
       ],
@@ -187,8 +177,7 @@
           "radius": 32
         }
       ],
-      "stars": [
-      ]
+      "stars": []
     },
     {
       "id": "5",
@@ -250,12 +239,11 @@
           "size": 60
         }
       ]
-
     },
     {
       "id": "6",
       "name": "Level 6",
-            "points": [
+      "points": [
         {
           "id": "1",
           "x": 100,
@@ -316,7 +304,7 @@
     {
       "id": "7",
       "name": "Level 7",
-            "rules": [
+      "rules": [
         { "type": "start-point", "params": { "pointId": "3" } },
         { "type": "end-point", "params": { "pointId": "3" } }
       ],
@@ -381,7 +369,7 @@
     {
       "id": "8",
       "name": "Level 8",
-            "rules": [
+      "rules": [
         { "type": "start-point", "params": { "pointId": "1" } },
         { "type": "end-point", "params": { "pointId": "3" } }
       ],
@@ -423,13 +411,76 @@
         }
       ],
       "stars": [
+        {
+          "id": "1",
+          "x": 150,
+          "y": 290,
+          "size": 60
+        },
+        {
+          "id": "2",
+          "x": 150,
+          "y": 390,
+          "size": 60
+        },
+        {
+          "id": "3",
+          "x": 250,
+          "y": 390,
+          "size": 60
+        }
       ]
-
     },
     {
       "id": "9",
       "name": "Level 9",
-            "rules": [
+      "rules": [
+        { "type": "start-point", "params": { "pointId": "1" } },
+        { "type": "end-point", "params": { "pointId": "1" } }
+      ],
+      "points": [
+        {
+          "id": "1",
+          "x": 100,
+          "y": 240,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "2",
+          "x": 300,
+          "y": 240,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "3",
+          "x": 200,
+          "y": 340,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "4",
+          "x": 100,
+          "y": 440,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "5",
+          "x": 300,
+          "y": 440,
+          "value": 1,
+          "radius": 32
+        }
+      ],
+      "stars": []
+    },
+    {
+      "id": "9b",
+      "name": "Level 9 bis",
+      "rules": [
         { "type": "start-point", "params": { "pointId": "1" } },
         { "type": "end-point", "params": { "pointId": "1" } }
       ],
@@ -471,13 +522,30 @@
         }
       ],
       "stars": [
+        {
+          "id": "1",
+          "x": 150,
+          "y": 290,
+          "size": 60
+        },
+        {
+          "id": "2",
+          "x": 150,
+          "y": 390,
+          "size": 60
+        },
+        {
+          "id": "3",
+          "x": 250,
+          "y": 390,
+          "size": 60
+        }
       ]
-
     },
     {
       "id": "10",
       "name": "Level 10",
-            "rules": [
+      "rules": [
         { "type": "start-point", "params": { "pointId": "3" } },
         { "type": "end-point", "params": { "pointId": "6" } }
       ],
@@ -526,6 +594,24 @@
         }
       ],
       "stars": [
+        {
+          "id": "1",
+          "x": 300,
+          "y": 340,
+          "size": 60
+        },
+        {
+          "id": "2",
+          "x": 200,
+          "y": 440,
+          "size": 60
+        },
+        {
+          "id": "3",
+          "x": 300,
+          "y": 540,
+          "size": 60
+        }
       ]
     },
     {
@@ -598,13 +684,12 @@
           "y": 470,
           "size": 60
         }
-
       ]
     },
     {
       "id": "12",
       "name": "Level 12",
-            "rules": [
+      "rules": [
         { "type": "start-point", "params": { "pointId": "8" } },
         { "type": "end-point", "params": { "pointId": "8" } }
       ],
@@ -694,10 +779,10 @@
         }
       ]
     },
-        {
+    {
       "id": "13",
       "name": "Level 13",
-            "rules": [
+      "rules": [
         { "type": "start-point", "params": { "pointId": "3" } },
         { "type": "end-point", "params": { "pointId": "2" } },
         { "type": "ordered-stars", "params": { "order": ["1", "2", "3"] } }
@@ -746,77 +831,63 @@
         }
       ]
     },
-        {
+    {
       "id": "14",
       "name": "Level 14",
       "rules": [
-        { "type": "start-point", "params": { "pointId": "3" } },
-        { "type": "end-point", "params": { "pointId": "6" } }
+        { "type": "start-point", "params": { "pointId": "4" } },
+        { "type": "end-point", "params": { "pointId": "4" } },
+        { "type": "ordered-stars", "params": { "order": ["1", "2", "3"] } }
       ],
       "points": [
         {
           "id": "1",
-          "x": 100,
+          "x": 200,
           "y": 240,
-          "value": 2,
+          "value": 1,
           "radius": 32
         },
         {
           "id": "2",
-          "x": 300,
-          "y": 240,
-          "value": 2,
+          "x": 100,
+          "y": 440,
+          "value": 1,
           "radius": 32
         },
         {
           "id": "3",
           "x": 200,
-          "y": 340,
+          "y": 440,
           "value": 1,
           "radius": 32
         },
         {
           "id": "4",
-          "x": 100,
-          "y": 440,
-          "value": 2,
-          "radius": 32
-        },
-        {
-          "id": "5",
           "x": 300,
           "y": 440,
           "value": 2,
-          "radius": 32
-        },
-        {
-          "id": "6",
-          "x": 200,
-          "y": 540,
-          "value": 1,
           "radius": 32
         }
       ],
       "stars": [
         {
           "id": "1",
-          "x": 200,
-          "y": 240,
+          "x": 150,
+          "y": 340,
           "size": 60
         },
         {
           "id": "2",
-          "x": 100,
+          "x": 250,
           "y": 340,
           "size": 60
         },
         {
           "id": "3",
           "x": 200,
-          "y": 470,
+          "y": 540,
           "size": 60
         }
-
       ]
     },
     {
@@ -942,14 +1013,14 @@
           "value": 1,
           "radius": 32
         },
-                {
+        {
           "id": "7",
           "x": 200,
           "y": 540,
           "value": 5,
           "radius": 32
         },
-                {
+        {
           "id": "8",
           "x": 300,
           "y": 540,
@@ -957,8 +1028,563 @@
           "radius": 32
         }
       ],
+      "stars": []
+    },
+    {
+      "id": "17",
+      "name": "Level 17",
+      "rules": [
+        { "type": "start-point", "params": { "pointId": "5" } },
+        { "type": "end-point", "params": { "pointId": "6" } },
+        { "type": "ordered-stars", "params": { "order": ["1", "2", "3"] } }
+      ],
+      "points": [
+        {
+          "id": "1",
+          "x": 100,
+          "y": 240,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "2",
+          "x": 300,
+          "y": 240,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "3",
+          "x": 200,
+          "y": 340,
+          "value": 3,
+          "radius": 32
+        },
+        {
+          "id": "4",
+          "x": 100,
+          "y": 440,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "5",
+          "x": 200,
+          "y": 440,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "6",
+          "x": 300,
+          "y": 440,
+          "value": 1,
+          "radius": 32
+        }
+      ],
+      "stars": [
+        {
+          "id": "1",
+          "x": 200,
+          "y": 240,
+          "size": 60
+        },
+        {
+          "id": "2",
+          "x": 100,
+          "y": 340,
+          "size": 60
+        },
+        {
+          "id": "3",
+          "x": 300,
+          "y": 340,
+          "size": 60
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "name": "Level 18",
+      "rules": [
+        { "type": "start-point", "params": { "pointId": "5" } },
+        { "type": "end-point", "params": { "pointId": "6" } }
+      ],
+      "points": [
+        {
+          "id": "1",
+          "x": 100,
+          "y": 240,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "2",
+          "x": 300,
+          "y": 240,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "3",
+          "x": 200,
+          "y": 340,
+          "value": 5,
+          "radius": 32
+        },
+        {
+          "id": "4",
+          "x": 100,
+          "y": 440,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "5",
+          "x": 200,
+          "y": 440,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "6",
+          "x": 300,
+          "y": 440,
+          "value": 1,
+          "radius": 32
+        }
+      ],
+      "stars": []
+    },
+    {
+      "id": "19",
+      "name": "Level 19",
+      "rules": [
+        { "type": "start-point", "params": { "pointId": "4" } },
+        { "type": "end-point", "params": { "pointId": "6" } }
+      ],
+      "points": [
+        {
+          "id": "1",
+          "x": 100,
+          "y": 240,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "2",
+          "x": 200,
+          "y": 240,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "3",
+          "x": 300,
+          "y": 240,
+          "value": 1,
+          "radius": 32
+        },
+        {
+          "id": "4",
+          "x": 100,
+          "y": 340,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "5",
+          "x": 200,
+          "y": 340,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "6",
+          "x": 300,
+          "y": 340,
+          "value": 2,
+          "radius": 32
+        },
+                {
+          "id": "7",
+          "x": 100,
+          "y": 440,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "8",
+          "x": 200,
+          "y": 440,
+          "value": 2,
+          "radius": 32
+        },
+        {
+          "id": "9",
+          "x": 300,
+          "y": 440,
+          "value": 2,
+          "radius": 32
+        }
+      ],
+      "stars": [
+        {
+          "id": "1",
+          "x": 150,
+          "y": 290,
+          "size": 60
+        },
+        {
+          "id": "2",
+          "x": 250,
+          "y": 290,
+          "size": 60
+        },
+        {
+          "id": "3",
+          "x": 200,
+          "y": 550,
+          "size": 60
+        }
+      ]
+    },
+    {
+      "id": "20",
+      "name": "Level 20",
+      "rules": [
+        { "type": "start-point", "params": { "pointId": "4" } },
+        { "type": "end-point", "params": { "pointId": "6" } }
+      ],
+      "points": [
+        {
+          "id": "1",
+          "x": 100,
+          "y": 240,
+          "value": 3,
+          "radius": 32
+        },
+        {
+          "id": "2",
+          "x": 200,
+          "y": 240,
+          "value": 3,
+          "radius": 32
+        },
+        {
+          "id": "3",
+          "x": 300,
+          "y": 240,
+          "value": 3,
+          "radius": 32
+        },
+        {
+          "id": "4",
+          "x": 100,
+          "y": 340,
+          "value": 3,
+          "radius": 32
+        },
+        {
+          "id": "5",
+          "x": 200,
+          "y": 340,
+          "value": 3,
+          "radius": 32
+        },
+        {
+          "id": "6",
+          "x": 300,
+          "y": 340,
+          "value": 3,
+          "radius": 32
+        },
+                {
+          "id": "7",
+          "x": 100,
+          "y": 440,
+          "value": 3,
+          "radius": 32
+        },
+        {
+          "id": "8",
+          "x": 200,
+          "y": 440,
+          "value": 3,
+          "radius": 32
+        },
+        {
+          "id": "9",
+          "x": 300,
+          "y": 440,
+          "value": 3,
+          "radius": 32
+        }
+      ],
       "stars": [
       ]
-    }
+    },
+    {
+  "id": "21",
+  "name": "Level 21",
+  "rules": [
+    { "type": "start-point", "params": { "pointId": "1" } },
+    { "type": "end-point", "params": { "pointId": "9" } }
+  ],
+  "points": [
+    { "id": "1", "x": 100, "y": 190, "value": 1, "radius": 32 },
+    { "id": "2", "x": 200, "y": 190, "value": 2, "radius": 32 },
+    { "id": "3", "x": 300, "y": 190, "value": 1, "radius": 32 },
+    { "id": "4", "x": 100, "y": 340, "value": 2, "radius": 32 },
+    { "id": "5", "x": 200, "y": 340, "value": 3, "radius": 32 },
+    { "id": "6", "x": 300, "y": 340, "value": 2, "radius": 32 },
+    { "id": "7", "x": 100, "y": 490, "value": 1, "radius": 32 },
+    { "id": "8", "x": 200, "y": 490, "value": 2, "radius": 32 },
+    { "id": "9", "x": 300, "y": 490, "value": 1, "radius": 32 }
+  ],
+  "stars": [
+    { "id": "1", "x": 200, "y": 270, "size": 60 },
+    { "id": "2", "x": 150, "y": 420, "size": 60 },
+    { "id": "3", "x": 250, "y": 420, "size": 60 }
+  ]
+},
+{
+  "id": "22",
+  "name": "Level 22",
+  "rules": [
+    { "type": "start-point", "params": { "pointId": "5" } },
+    { "type": "end-point", "params": { "pointId": "5" } },
+    { "type": "ordered-stars", "params": { "order": ["1", "2", "3"] } }
+  ],
+  "points": [
+    { "id": "1", "x": 100, "y": 240, "value": 2, "radius": 32 },
+    { "id": "2", "x": 200, "y": 240, "value": 1, "radius": 32 },
+    { "id": "3", "x": 300, "y": 240, "value": 2, "radius": 32 },
+    { "id": "4", "x": 100, "y": 340, "value": 1, "radius": 32 },
+    { "id": "5", "x": 200, "y": 340, "value": 4, "radius": 32 },
+    { "id": "6", "x": 300, "y": 340, "value": 1, "radius": 32 },
+    { "id": "7", "x": 100, "y": 440, "value": 2, "radius": 32 },
+    { "id": "8", "x": 200, "y": 440, "value": 1, "radius": 32 },
+    { "id": "9", "x": 300, "y": 440, "value": 2, "radius": 32 }
+  ],
+  "stars": [
+    { "id": "1", "x": 150, "y": 290, "size": 60 },
+    { "id": "2", "x": 250, "y": 290, "size": 60 },
+    { "id": "3", "x": 200, "y": 490, "size": 60 }
+  ]
+},
+{
+  "id": "23",
+  "name": "Level 23",
+  "rules": [
+    { "type": "start-point", "params": { "pointId": "1" } },
+    { "type": "end-point", "params": { "pointId": "10" } },
+    { "type": "ordered-stars", "params": { "order": ["1", "2", "3"] } }
+  ],
+  "points": [
+    { "id": "1", "x": 100, "y": 40, "value": 4, "radius": 32 },
+    { "id": "2", "x": 300, "y": 40, "value": 1, "radius": 32 },
+    { "id": "3", "x": 200, "y": 160, "value": 2, "radius": 32 },
+    { "id": "4", "x": 100, "y": 240, "value": 2, "radius": 32 },
+    { "id": "5", "x": 300, "y": 240, "value": 2, "radius": 32 },
+    { "id": "6", "x": 200, "y": 340, "value": 3, "radius": 32 },
+    { "id": "7", "x": 100, "y": 440, "value": 1, "radius": 32 },
+    { "id": "8", "x": 300, "y": 440, "value": 1, "radius": 32 },
+    { "id": "9", "x": 200, "y": 540, "value": 2, "radius": 32 },
+    { "id": "10", "x": 200, "y": 640, "value": 1, "radius": 32 }
+  ],
+  "stars": [
+    { "id": "1", "x": 200, "y": 90, "size": 60 },
+    { "id": "2", "x": 200, "y": 240, "size": 60 },
+    { "id": "3", "x": 200, "y": 440, "size": 60 }
+  ]
+},{
+  "id": "24",
+  "name": "Level 24",
+  "rules": [
+    { "type": "start-point", "params": { "pointId": "1" } },
+    { "type": "end-point", "params": { "pointId": "9" } }
+  ],
+  "points": [
+    { "id": "1", "x": 100, "y": 240, "value": 2, "radius": 32 },
+    { "id": "2", "x": 200, "y": 240, "value": 1, "radius": 32 },
+    { "id": "3", "x": 300, "y": 240, "value": 2, "radius": 32 },
+    { "id": "4", "x": 100, "y": 340, "value": 1, "radius": 32 },
+    { "id": "5", "x": 200, "y": 340, "value": 3, "radius": 32 },
+    { "id": "6", "x": 300, "y": 340, "value": 1, "radius": 32 },
+    { "id": "7", "x": 100, "y": 440, "value": 2, "radius": 32 },
+    { "id": "8", "x": 200, "y": 440, "value": 1, "radius": 32 },
+    { "id": "9", "x": 300, "y": 440, "value": 2, "radius": 32 }
+  ],
+  "stars": [
+    { "id": "1", "x": 150, "y": 290, "size": 60 },
+    { "id": "2", "x": 250, "y": 390, "size": 60 },
+    { "id": "3", "x": 150, "y": 390, "size": 60 }
+  ]
+},
+{
+  "id": "25",
+  "name": "Level 25",
+  "rules": [
+    { "type": "start-point", "params": { "pointId": "4" } },
+    { "type": "end-point", "params": { "pointId": "6" } },
+    { "type": "ordered-stars", "params": { "order": ["1", "2", "3"] } }
+  ],
+  "points": [
+    { "id": "1", "x": 100, "y": 140, "value": 2, "radius": 32 },
+    { "id": "2", "x": 200, "y": 140, "value": 3, "radius": 32 },
+    { "id": "3", "x": 300, "y": 140, "value": 2, "radius": 32 },
+    { "id": "4", "x": 100, "y": 340, "value": 1, "radius": 32 },
+    { "id": "5", "x": 200, "y": 340, "value": 4, "radius": 32 },
+    { "id": "6", "x": 300, "y": 340, "value": 1, "radius": 32 },
+    { "id": "7", "x": 100, "y": 540, "value": 2, "radius": 32 },
+    { "id": "8", "x": 200, "y": 540, "value": 1, "radius": 32 },
+    { "id": "9", "x": 300, "y": 540, "value": 2, "radius": 32 }
+  ],
+  "stars": [
+    { "id": "1", "x": 100, "y": 240, "size": 60 },
+    { "id": "2", "x": 200, "y": 440, "size": 60 },
+    { "id": "3", "x": 250, "y": 240, "size": 60 }
+  ]
+},
+{
+  "id": "26",
+  "name": "Level 26",
+  "rules": [
+    { "type": "start-point", "params": { "pointId": "1" } },
+    { "type": "end-point", "params": { "pointId": "1" } },
+    { "type": "ordered-stars", "params": { "order": ["1", "2", "3", "4"] } }
+  ],
+  "points": [
+    { "id": "1", "x": 100, "y": 240, "value": 2, "radius": 32 },
+    { "id": "2", "x": 200, "y": 240, "value": 1, "radius": 32 },
+    { "id": "3", "x": 300, "y": 240, "value": 3, "radius": 32 },
+    { "id": "4", "x": 100, "y": 340, "value": 1, "radius": 32 },
+    { "id": "5", "x": 200, "y": 340, "value": 2, "radius": 32 },
+    { "id": "6", "x": 300, "y": 340, "value": 1, "radius": 32 },
+    { "id": "7", "x": 100, "y": 440, "value": 3, "radius": 32 },
+    { "id": "8", "x": 200, "y": 440, "value": 1, "radius": 32 },
+    { "id": "9", "x": 300, "y": 440, "value": 2, "radius": 32 }
+  ],
+  "stars": [
+    { "id": "1", "x": 200, "y": 290, "size": 60 },
+    { "id": "2", "x": 300, "y": 290, "size": 60 },
+    { "id": "3", "x": 250, "y": 390, "size": 60 },
+    { "id": "4", "x": 150, "y": 390, "size": 60 }
+  ]
+},
+{
+  "id": "27",
+  "name": "Level 27",
+  "rules": [
+    { "type": "start-point", "params": { "pointId": "1" } },
+    { "type": "end-point", "params": { "pointId": "10" } },
+    { "type": "ordered-stars", "params": { "order": ["1", "2", "3", "4"] } }
+  ],
+  "points": [
+    { "id": "1", "x": 100, "y": 120, "value": 1, "radius": 32 },
+    { "id": "2", "x": 300, "y": 120, "value": 1, "radius": 32 },
+    { "id": "3", "x": 200, "y": 193, "value": 2, "radius": 32 },
+    { "id": "4", "x": 100, "y": 267, "value": 2, "radius": 32 },
+    { "id": "5", "x": 300, "y": 267, "value": 2, "radius": 32 },
+    { "id": "6", "x": 200, "y": 340, "value": 3, "radius": 32 },
+    { "id": "7", "x": 100, "y": 413, "value": 1, "radius": 32 },
+    { "id": "8", "x": 300, "y": 413, "value": 1, "radius": 32 },
+    { "id": "9", "x": 200, "y": 487, "value": 2, "radius": 32 },
+    { "id": "10", "x": 200, "y": 560, "value": 1, "radius": 32 }
+  ],
+  "stars": [
+    { "id": "1", "x": 200, "y": 100, "size": 60 },
+    { "id": "2", "x": 200, "y": 267, "size": 60 },
+    { "id": "3", "x": 200, "y": 420, "size": 60 },
+    { "id": "4", "x": 100, "y": 523, "size": 60 }
+  ]
+},
+{
+  "id": "28",
+  "name": "Level 28",
+  "rules": [
+    { "type": "start-point", "params": { "pointId": "5" } },
+    { "type": "end-point", "params": { "pointId": "5" } },
+    { "type": "ordered-stars", "params": { "order": ["1", "2", "3", "4", "5"] } }
+  ],
+  "points": [
+    { "id": "1", "x": 100, "y": 240, "value": 2, "radius": 32 },
+    { "id": "2", "x": 200, "y": 240, "value": 3, "radius": 32 },
+    { "id": "3", "x": 300, "y": 240, "value": 2, "radius": 32 },
+    { "id": "4", "x": 100, "y": 340, "value": 3, "radius": 32 },
+    { "id": "5", "x": 200, "y": 340, "value": 4, "radius": 32 },
+    { "id": "6", "x": 300, "y": 340, "value": 3, "radius": 32 },
+    { "id": "7", "x": 100, "y": 440, "value": 2, "radius": 32 },
+    { "id": "8", "x": 200, "y": 440, "value": 3, "radius": 32 },
+    { "id": "9", "x": 300, "y": 440, "value": 2, "radius": 32 }
+  ],
+  "stars": [
+    { "id": "1", "x": 150, "y": 290, "size": 60 },
+    { "id": "2", "x": 250, "y": 290, "size": 60 },
+    { "id": "3", "x": 300, "y": 390, "size": 60 },
+    { "id": "4", "x": 150, "y": 390, "size": 60 },
+    { "id": "5", "x": 200, "y": 490, "size": 60 }
+  ]
+},
+{
+  "id": "29",
+  "name": "Level 29",
+  "rules": [
+    { "type": "start-point", "params": { "pointId": "1" } },
+    { "type": "end-point", "params": { "pointId": "6" } },
+    { "type": "ordered-stars", "params": { "order": ["1", "2", "3", "4", "5"] } }
+  ],
+  "points": [
+    { "id": "1", "x": 100, "y": 240, "value": 1, "radius": 32 },
+    { "id": "2", "x": 300, "y": 240, "value": 1, "radius": 32 },
+    { "id": "3", "x": 200, "y": 340, "value": 2, "radius": 32 },
+    { "id": "4", "x": 100, "y": 440, "value": 2, "radius": 32 },
+    { "id": "5", "x": 300, "y": 440, "value": 2, "radius": 32 },
+    { "id": "6", "x": 200, "y": 540, "value": 3, "radius": 32 },
+    { "id": "7", "x": 100, "y": 640, "value": 1, "radius": 32 },
+    { "id": "8", "x": 300, "y": 640, "value": 1, "radius": 32 },
+    { "id": "9", "x": 200, "y": 710, "value": 2, "radius": 32 },
+    { "id": "10", "x": 100, "y": 540, "value": 4, "radius": 32 }
+  ],
+  "stars": [
+    { "id": "1", "x": 200, "y": 290, "size": 60 },
+    { "id": "2", "x": 200, "y": 440, "size": 60 },
+    { "id": "3", "x": 200, "y": 590, "size": 60 },
+    { "id": "4", "x": 200, "y": 790, "size": 60 },
+    { "id": "5", "x": 200, "y": 190, "size": 60 }
+  ]
+},
+{
+  "id": "30",
+  "name": "Level 30",
+  "rules": [
+    { "type": "start-point", "params": { "pointId": "5" } },
+    { "type": "end-point", "params": { "pointId": "5" } },
+    { "type": "ordered-stars", "params": { "order": ["1", "2", "3", "4", "5", "6"] } }
+  ],
+  "points": [
+    { "id": "1", "x": 100, "y": 140, "value": 3, "radius": 32 },
+    { "id": "2", "x": 200, "y": 140, "value": 2, "radius": 32 },
+    { "id": "3", "x": 300, "y": 140, "value": 3, "radius": 32 },
+    { "id": "4", "x": 100, "y": 240, "value": 2, "radius": 32 },
+    { "id": "5", "x": 200, "y": 240, "value": 4, "radius": 32 },
+    { "id": "6", "x": 300, "y": 240, "value": 2, "radius": 32 },
+    { "id": "7", "x": 100, "y": 340, "value": 3, "radius": 32 },
+    { "id": "8", "x": 200, "y": 340, "value": 2, "radius": 32 },
+    { "id": "9", "x": 300, "y": 340, "value": 3, "radius": 32 },
+    { "id": "10", "x": 100, "y": 440, "value": 2, "radius": 32 },
+    { "id": "11", "x": 200, "y": 440, "value": 3, "radius": 32 },
+    { "id": "12", "x": 300, "y": 440, "value": 2, "radius": 32 }
+  ],
+  "stars": [
+    { "id": "1", "x": 150, "y": 190, "size": 60 },
+    { "id": "2", "x": 250, "y": 190, "size": 60 },
+    { "id": "3", "x": 300, "y": 290, "size": 60 },
+    { "id": "4", "x": 150, "y": 290, "size": 60 },
+    { "id": "5", "x": 200, "y": 390, "size": 60 },
+    { "id": "6", "x": 100, "y": 190, "size": 60 }
+  ]
+}
   ]
 }

@@ -1,14 +1,8 @@
 import React, { createContext, useContext, useRef, useState, useEffect } from "react";
 import mobileAds from "react-native-google-mobile-ads";
+import type { AdMode, AdContextType } from "./types";
 
-export type AdMode = "normal" | "high" | "no_ads";
-
-type AdContextType = {
-  adMode: AdMode;
-  setAdMode: (mode: AdMode) => void;
-  canLoadAd: () => boolean;
-  adsReady: boolean;
-};
+export type { AdMode, AdContextType };
 
 const AdContext = createContext<AdContextType | null>(null);
 

@@ -5,7 +5,7 @@ import { styles } from "../HomeScreen.styles"
 import NoAdsIcon from "@/assets/gameimg/no-ads-icon.svg"
 
 import { PaywallService } from "@/src/infrastructure/iap/PaywallService"
-import { useIAP } from "@/src/presentation/hooks/useIAP"
+import { useIAP } from "@/src/presentation/hooks/useIAP.native"
 
 export default function NoAdsButton() {
   const { refreshPurchases } = useIAP()

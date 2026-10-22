@@ -1,5 +1,5 @@
 // src/presentation/hooks/useGame.ts
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Point } from "@/src/core/models/Point"
 import { Validator, ValidationResult } from "@/src/core/engine/Validator"
 import { LevelRuleConfig } from "@/src/core/rules/LevelRuleConfig"
@@ -22,14 +22,26 @@ export function useGame(
   setCollectedStars: React.Dispatch<React.SetStateAction<Record<string, boolean>>>,
   rules?: LevelRuleConfig[]
 ) {
+  // ---------------- STATE (affichage) ----------------
   const [path, setPath] = useState<Vec[]>([])
   const [visited, setVisited] = useState<Record<string, number>>({})
   const [visitOrder, setVisitOrder] = useState<string[]>([])
   const [starsOrder, setStarsOrder] = useState<string[]>([])
-  const [inside, setInside] = useState<Record<string, boolean>>({})
-  const [lastPos, setLastPos] = useState<Vec | null>(null)
-  const [lost, setLost] = useState(false)
   const [lastResult, setLastResult] = useState<ValidationResult | null>(null)
+
+  // ---------------- REFS (source de vérité synchrone) ----------------
+  const pathRef = useRef<Vec[]>([])
+  const visitedRef = useRef<Record<string, number>>({})
+  const visitOrderRef = useRef<string[]>([])
+  const starsOrderRef = useRef<string[]>([])
+  const insideRef = useRef<Record<string, boolean>>({})
+  const lastPosRef = useRef<Vec | null>(null)
+  const lostRef = useRef(false)
+  const collectedRef = useRef<Record<string, boolean>>({})
+
+  // Garde la ref des étoiles synchronisée avec le state parent
+  // (le parent peut la réinitialiser : retry, niveau suivant...)
+  collectedRef.current = collectedStars
 
   const isPathValid = points.every(p => (visited[p.id] ?? 0) === p.value)
 
@@ -101,86 +113,105 @@ export function useGame(
     })
   }
 
+  // ---------------- RESET ----------------
+
+  function resetAll() {
+    pathRef.current = []
+    visitedRef.current = {}
+    visitOrderRef.current = []
+    starsOrderRef.current = []
+    insideRef.current = {}
+    lastPosRef.current = null
+    lostRef.current = false
+    collectedRef.current = {}
+
+    setPath([])
+    setVisited({})
+    setVisitOrder([])
+    setStarsOrder([])
+    setCollectedStars({})
+    setLastResult(null)
+  }
+
   function markLostAndReset() {
-    setLost(true)
+    lostRef.current = true
     resetAll()
+    // resetAll remet lost à false : on le repositionne pour que les
+    // moves suivants soient ignorés jusqu'au prochain handleStart
+    lostRef.current = true
   }
 
   // ---------------- STARS ----------------
 
   function checkStars(x: number, y: number) {
-    if (!isPathValid) return
+    // Validité calculée depuis les refs (pas depuis le state périmé)
+    const valid = points.every(
+      p => (visitedRef.current[p.id] ?? 0) === p.value
+    )
+    if (!valid) return
 
     stars.forEach(star => {
-      if (collectedStars[star.id]) return
+      if (collectedRef.current[star.id]) return
 
       const dist = Math.hypot(x - star.x, y - star.y)
       if (dist <= star.size / 2) {
+        collectedRef.current = { ...collectedRef.current, [star.id]: true }
+        starsOrderRef.current = [...starsOrderRef.current, star.id]
+
         setCollectedStars(prev => ({ ...prev, [star.id]: true }))
-        setStarsOrder(prev => [...prev, star.id])
+        setStarsOrder(starsOrderRef.current)
       }
     })
-  }
-
-  // ---------------- RESET ----------------
-
-  function resetAll() {
-    setPath([])
-    setVisited({})
-    setVisitOrder([])
-    setStarsOrder([])
-    setInside({})
-    setLastPos(null)
-    setLost(false)
-    setCollectedStars({})
-    setLastResult(null)
   }
 
   // ---------------- GESTURES ----------------
 
   function handleStart(x: number, y: number) {
-    setPath([{ x, y }])
-    setLost(false)
-    setCollectedStars({})
-    setLastResult(null)
-    setStarsOrder([])
+    // Réinitialisation complète des refs
+    pathRef.current = [{ x, y }]
+    lostRef.current = false
+    collectedRef.current = {}
+    starsOrderRef.current = []
 
-    // On détecte immédiatement si le doigt est posé
-    // à l'intérieur d'un ou plusieurs points au moment du touch,
-    // pour que StartPointRule (basée sur visitOrder[0]) fonctionne
-    // même si l'utilisateur pose le doigt directement sur le point de départ.
     const newInside: Record<string, boolean> = {}
     const newVisited: Record<string, number> = {}
     const newVisitOrder: string[] = []
 
     points.forEach(pt => {
-      const dist = Math.hypot(x - pt.x, y - pt.y)
-      const isInside = dist <= pt.radius + EPS
+      const isInside = Math.hypot(x - pt.x, y - pt.y) <= pt.radius + EPS
       newInside[pt.id] = isInside
-
       if (isInside) {
         newVisited[pt.id] = 1
         newVisitOrder.push(pt.id)
       }
     })
 
-    setInside(newInside)
+    insideRef.current = newInside
+    visitedRef.current = newVisited
+    visitOrderRef.current = newVisitOrder
+    lastPosRef.current = { x, y }
+
+    // Synchronisation de l'affichage
+    setPath(pathRef.current)
+    setCollectedStars({})
+    setLastResult(null)
+    setStarsOrder([])
     setVisited(newVisited)
     setVisitOrder(newVisitOrder)
-    setLastPos({ x, y })
 
     checkStars(x, y)
   }
 
   function handleMove(x: number, y: number) {
-    if (lost) return true
+    if (lostRef.current) return true
 
-    const newPoint: Vec = { x, y }
-    const prev = lastPos
+    const prev = lastPosRef.current
     if (!prev) return false
 
-    const currentPath = [...path]
+    const newPoint: Vec = { x, y }
+    const currentPath = pathRef.current
 
+    // Détection d'auto-intersection
     for (let i = 0; i + 1 < currentPath.length; i++) {
       if (i === currentPath.length - 2) continue
 
@@ -203,43 +234,55 @@ export function useGame(
       return true
     }
 
-    setPath(p => [...p, newPoint])
+    // Mise à jour du tracé
+    pathRef.current = [...currentPath, newPoint]
+    setPath(pathRef.current)
+
+    // Détection des entrées dans les points (lecture/écriture synchrone)
+    let visitedChanged = false
+    let orderChanged = false
 
     points.forEach(pt => {
-      const dist = Math.hypot(x - pt.x, y - pt.y)
-      const isNowInside = dist <= pt.radius + EPS
-      const wasInside = inside[pt.id] ?? false
+      const isNowInside = Math.hypot(x - pt.x, y - pt.y) <= pt.radius + EPS
+      const wasInside = insideRef.current[pt.id] ?? false
 
       if (isNowInside && !wasInside) {
-        setVisited(v => ({ ...v, [pt.id]: (v[pt.id] ?? 0) + 1 }))
-
-        // ✅ CORRECTION : on n'empêche plus l'ajout d'un doublon consécutif ici.
-        // Avant, on filtrait "if (prev[prev.length - 1] === pt.id) return prev",
-        // ce qui empêchait TOUJOURS qu'un backtrack (A -> B -> A) apparaisse
-        // dans visitOrder, rendant NoBacktrackRule totalement inopérante
-        // (elle ne recevait jamais de doublon consécutif à détecter).
-        // On enregistre maintenant la vraie transition d'entrée dans le cercle.
-        setVisitOrder(prev => [...prev, pt.id])
+        visitedRef.current = {
+          ...visitedRef.current,
+          [pt.id]: (visitedRef.current[pt.id] ?? 0) + 1,
+        }
+        visitOrderRef.current = [...visitOrderRef.current, pt.id]
+        visitedChanged = true
+        orderChanged = true
       }
 
-      setInside(prev => ({ ...prev, [pt.id]: isNowInside }))
+      insideRef.current[pt.id] = isNowInside
     })
 
-    setLastPos(newPoint)
+    if (visitedChanged) setVisited(visitedRef.current)
+    if (orderChanged) setVisitOrder(visitOrderRef.current)
+
+    lastPosRef.current = newPoint
     checkStars(x, y)
 
     return false
   }
 
   function handleEnd(): ValidationResult {
-    if (lost) {
-      setLost(false)
+    if (lostRef.current) {
+      lostRef.current = false
       const result: ValidationResult = { valid: false, failedRule: "lost" }
       setLastResult(result)
       return result
     }
 
-    const result = Validator.validate(points, visited, visitOrder, rules, starsOrder)
+    const result = Validator.validate(
+      points,
+      visitedRef.current,
+      visitOrderRef.current,
+      rules,
+      starsOrderRef.current
+    )
     setLastResult(result)
 
     if (!result.valid) {

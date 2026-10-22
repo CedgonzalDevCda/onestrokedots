@@ -14,7 +14,7 @@ jest.mock("@/src/infrastructure/repositories/ProgressRepository", () => ({
 }))
 
 import { levelRepository } from "@/src/infrastructure/repositories/LevelRepository"
-import { ProgressRepository } from "@/src/infrastructure/repositories/ProgressRepository"
+import { ProgressRepository } from "@/src/infrastructure/repositories/ProgressRepository.native"
 
 describe("GetLevels", () => {
   beforeEach(() => {

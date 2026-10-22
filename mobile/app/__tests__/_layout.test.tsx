@@ -72,7 +72,7 @@ import { render, waitFor } from "@testing-library/react-native";
 import { Platform } from "react-native";
 import * as SplashScreen from "expo-splash-screen";
 import * as NavigationBar from "expo-navigation-bar";
-import { initDatabase } from "@/src/infrastructure/persistence/sqlite/initDatabase";
+import { initDatabase } from "@/src/infrastructure/persistence/sqlite/initDatabase.native";
 import { progression } from "@/src/meta/progression/ProgressionService";
 import Layout from "../_layout";
 

@@ -1,4 +1,4 @@
-import { View } from "react-native"
+import { View, Platform } from "react-native"
 import { LinearGradient } from "expo-linear-gradient"
 import { useRouter } from "expo-router"
 import { useEffect, useRef } from "react"
@@ -18,6 +18,9 @@ import HomeTitle from "./components/HomeTitle"
 import HomeLogo from "./components/HomeLogo"
 import HomeButtons from "./components/HomeButtons"
 import NoAdsButton from "./components/NoAdsButton"
+
+// Fonctionnalités indisponibles sur le web
+const IS_WEB = Platform.OS === "web"
 
 export default function HomeScreen() {
   const router = useRouter()
@@ -40,16 +43,21 @@ export default function HomeScreen() {
   // 🎵 Musique
   useEffect(() => {
     async function playIntroMusic() {
-      const { sound } = await Audio.Sound.createAsync(
-        require("@/assets/sounds/music/intro.mp3"),
-        {
-          isLooping: true,
-          volume: 0.5,
-        }
-      )
+      try {
+        const { sound } = await Audio.Sound.createAsync(
+          require("@/assets/sounds/music/intro.mp3"),
+          {
+            isLooping: true,
+            volume: 0.5,
+          }
+        )
 
-      soundRef.current = sound
-      await sound.playAsync()
+        soundRef.current = sound
+        await sound.playAsync()
+      } catch (e) {
+        // Sur le web, l'autoplay est souvent bloqué par le navigateur
+        console.log("Musique indisponible ou autoplay bloqué", e)
+      }
     }
 
     playIntroMusic()
@@ -69,14 +77,20 @@ export default function HomeScreen() {
 
         <HomeButtons
           onPlay={async () => {
-            await soundRef.current?.stopAsync()
+            try {
+              await soundRef.current?.stopAsync()
+            } catch (e) {
+              console.log("Erreur arrêt musique", e)
+            }
             router.push("/worlds")
           }}
           onCollection={() => router.push("/collections")}
+          onEditor={IS_WEB ? undefined : () => router.push("/editor")}
         />
       </View>
 
-      <NoAdsButton />
+      {/* Achat "sans pub" : mobile uniquement */}
+      {!IS_WEB && <NoAdsButton />}
     </LinearGradient>
   )
 }

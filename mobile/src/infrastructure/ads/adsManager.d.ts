@@ -1,0 +1,1 @@
+export declare function initAdsSafe(): Promise<boolean>;

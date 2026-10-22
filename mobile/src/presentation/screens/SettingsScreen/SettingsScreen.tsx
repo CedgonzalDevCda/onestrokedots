@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from "react-native"
 import { useAds } from "@/src/infrastructure/ads/AdProvider"
 import { PaywallService } from "@/src/infrastructure/iap/PaywallService"
-import { useIAP } from "@/src/presentation/hooks/useIAP"
+import { useIAP } from "@/src/presentation/hooks/useIAP.native"
 
 import AdOption from "./components/AdOption"
 import PurchaseBlock from "./components/PurchaseBlock"

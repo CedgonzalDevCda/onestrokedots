@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native"
-import { AdMode } from "@/src/infrastructure/ads/AdProvider"
+import { AdMode } from "@/src/infrastructure/ads/AdProvider.web"
 import Radio from "./Radio"
 
 type Props = {

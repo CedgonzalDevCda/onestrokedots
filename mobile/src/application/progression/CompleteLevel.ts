@@ -1,4 +1,4 @@
-import { ProgressRepository } from "@/src/infrastructure/repositories/ProgressRepository"
+import { ProgressRepository } from "@/src/infrastructure/repositories/ProgressRepository.native"
 import { PlayerState } from "@/src/meta/progression/PlayerState"
 
 export async function completeLevel(

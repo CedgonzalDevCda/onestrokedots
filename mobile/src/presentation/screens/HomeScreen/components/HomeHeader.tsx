@@ -1,7 +1,7 @@
 import { View } from "react-native"
 import { styles } from "../HomeScreen.styles"
 
-import { AdBanner } from "@/src/infrastructure/ads/AdBanner"
+import { AdBanner } from "@/src/infrastructure/ads/AdBanner.native"
 import GameHeader from "@/src/presentation/ui/GameHeader"
 
 export default function HomeHeader() {

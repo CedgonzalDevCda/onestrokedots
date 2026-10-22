@@ -4,9 +4,10 @@ import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
 import { adUnits } from "./adUnits";
 import { adConfig } from "./adConfig";
 import { useAds } from "./AdProvider";
+import type { BannerPlacement } from "./types";
 
 type Props = {
-  placement: keyof typeof adUnits.banner;
+  placement: BannerPlacement;
 };
 
 export const AdBanner: React.FC<Props> = ({ placement }) => {
@@ -15,49 +16,46 @@ export const AdBanner: React.FC<Props> = ({ placement }) => {
   const [showAd, setShowAd] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-const unitId = useMemo(() => {
-  const config = adUnits.banner[placement];
+  const unitId = useMemo(() => {
+    const config = adUnits.banner[placement];
+    if (!config) return null;
 
-  if (!config) return null;
+    return Platform.select({
+      ios: config.ios,
+      android: config.android,
+    });
+  }, [placement]);
 
-  return Platform.select({
-    ios: config.ios,
-    android: config.android,
-  });
-}, [placement]);
-
-if (!unitId) return null;
-
-
-  // ✅ 1. PREMIER LOAD SAFE
+  // 1. Premier chargement
   useEffect(() => {
+    if (adMode === "no_ads") return;
     if (!adsReady) return;
     if (!canLoadAd()) return;
 
     const timer = setTimeout(() => {
       setShowAd(true);
-    }, 2000); // ✅ délai obligatoire
+    }, 2000);
 
     return () => clearTimeout(timer);
-  }, [adsReady]);
+  }, [adsReady, adMode]);
 
-  // ✅ 2. REFRESH SAFE (remplace setInterval)
+  // 2. Refresh
   useEffect(() => {
     if (!showAd) return;
 
     const timer = setTimeout(() => {
       if (canLoadAd()) {
-        setRefreshKey(prev => prev + 1);
+        setRefreshKey((prev) => prev + 1);
       }
     }, adConfig.banner.refreshInterval);
 
     return () => clearTimeout(timer);
   }, [refreshKey, showAd]);
 
-  // ✅ NO ADS MODE
+  // Les retours conditionnels viennent APRÈS tous les hooks
+  if (!unitId) return null;
   if (adMode === "no_ads") return null;
 
-  // ✅ PAS PRÊT → fallback
   if (!showAd) {
     return <View style={styles.placeholder} />;
   }
@@ -84,8 +82,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     paddingVertical: 4,
   },
-
-  // ✅ évite layout jump + écran blanc
   placeholder: {
     width: "100%",
     height: 60,

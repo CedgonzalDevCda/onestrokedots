@@ -1,6 +1,6 @@
 import { ProgressionService } from "../ProgressionService"
 import { PlayerState } from "../PlayerState"
-import { ProgressRepository } from "@/src/infrastructure/repositories/ProgressRepository"
+import { ProgressRepository } from "@/src/infrastructure/repositories/ProgressRepository.native"
 
 // ✅ On mock le repository pour éviter toute dépendance externe (storage, API, etc.)
 jest.mock("@/src/infrastructure/repositories/ProgressRepository", () => ({

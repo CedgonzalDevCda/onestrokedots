@@ -71,11 +71,10 @@ export function useGameFlow(worldId: string, levelId: string) {
     game.handleMove(locationX, locationY);
   }
 
-  function end() {
-    if (!level) return;
-    handleEndAsync();
-  }
-
+function end(_e?: unknown) {
+  if (!level) return;
+  handleEndAsync();
+}
   // -------------------------
   // END GAME
   // -------------------------
